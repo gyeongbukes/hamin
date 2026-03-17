@@ -3,9 +3,8 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-  <title>M & S Wedding</title>
+  <title>M & H Wedding</title>
 
-  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 
   <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
@@ -13,405 +12,472 @@
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
   <style>
-    /* 기본 여백 제거 및 배경 설정 */
-    body { margin: 0; padding: 0; background-color: #F4F4F4; -webkit-tap-highlight-color: transparent; }
-    ::-webkit-scrollbar { display: none; } /* 스크롤바 숨김 */
+    body { margin: 0; padding: 0; background-color: #FAFAFA; -webkit-tap-highlight-color: transparent; color: #262626; overflow-x: hidden; font-family: 'Pretendard', sans-serif; }
+    ::-webkit-scrollbar { display: none; }
+    
+    @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 50% {transform: translateX(5px);} 75% {transform: translateX(-5px);} }
+    .shake { animation: shake 0.4s ease-in-out; }
+    @keyframes pop { 0% {transform: scale(0.8); opacity: 0;} 100% {transform: scale(1); opacity: 1;} }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes confettiFall { 0% { transform: translateY(-10vh) rotate(0deg); } 100% { transform: translateY(100vh) rotate(360deg); } }
+    
+    @keyframes floatUp {
+      0% { transform: translateY(0) scale(0.5); opacity: 1; }
+      100% { transform: translateY(-150px) scale(1.2); opacity: 0; }
+    }
+    .floating-heart {
+      position: absolute; animation: floatUp 1.2s ease-out forwards; pointer-events: none; font-size: 28px; z-index: 50;
+    }
   </style>
 </head>
 <body>
   <div id="root"></div>
 
   <script type="text/babel">
-    // import 대신 브라우저 방식의 React 함수 불러오기
-    const { useState, useEffect, useRef, useCallback } = React;
+    const { useState, useEffect, useRef } = React;
 
-    const WEDDING_DATE = new Date("2025-06-27T12:00:00");
-    const img = (id, w = 400, h = 400) => `https://picsum.photos/seed/wed${id}/${w}/${h}`;
-    const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => img(i + 10, 600, 400));
-
-    // 시크하고 모던한 컬러 팔레트
-    const P = {
-      bg: "#F4F4F4", white: "#FFFFFF", black: "#111111", darkGray: "#555555",
-      gray: "#999999", lightGray: "#E5E5E5", border: "#DDDDDD",
+    const getImg = (num, ext = 'jpg') => {
+      const bucket = "sungjang2025-30160.firebasestorage.app";
+      const path = encodeURIComponent(`개인/${num}.${ext}`);
+      return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${path}?alt=media`;
     };
 
-    const S = {
-      section: { padding: "40px 24px", position: "relative" },
-      tight: { padding: "30px 24px", position: "relative" },
-      divider: { width: 40, height: 1, background: P.black, margin: "0 auto", opacity: 0.2 },
-      title: { fontFamily: "'Playfair Display', serif", fontSize: 14, fontWeight: 600, letterSpacing: ".25em", color: P.black, textAlign: "center", marginBottom: 24, textTransform: "uppercase" },
-      btn: { fontFamily: "'Pretendard', sans-serif", fontWeight: 500, border: `1px solid ${P.black}`, background: P.white, color: P.black, padding: "12px 32px", borderRadius: 30, fontSize: 13, cursor: "pointer", transition: "all .3s", letterSpacing: ".02em" },
-    };
+    const GALLERY_IMAGES = Array.from({ length: 30 }, (_, i) => getImg(i + 1));
+    const WEDDING_DATE = new Date("2026-06-27T13:00:00");
+    const P = { bg: "#FAFAFA", white: "#FFFFFF", black: "#262626", gray: "#8E8E8E", lightGray: "#DBDBDB", blue: "#0095F6", pink: "#ED4956", border: "#EFEFEF" };
 
-    function useReveal(threshold = 0.15) {
-      const ref = useRef(null);
-      const [vis, setVis] = useState(false);
-      useEffect(() => {
-        const el = ref.current;
-        if (!el) return;
-        const obs = new IntersectionObserver(([e]) => {
-          if (e.isIntersecting) { setVis(true); obs.disconnect(); }
-        }, { threshold });
-        obs.observe(el);
-        return () => obs.disconnect();
-      }, []);
-      return [ref, vis];
-    }
-
-    function Reveal({ children, delay = 0, style = {} }) {
-      const [ref, vis] = useReveal();
+    /* 스크래치 카드 */
+    function ScratchCard() {
       return (
-        <div ref={ref} style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(30px)", transition: `opacity .8s ease ${delay}ms, transform .8s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms`, ...style }}>
-          {children}
-        </div>
-      );
-    }
-
-    function Splash({ onEnter }) {
-      const [leaving, setLeaving] = useState(false);
-      const go = () => { setLeaving(true); setTimeout(onEnter, 800); };
-      return (
-        <div onClick={go} style={{ position: "fixed", inset: 0, zIndex: 1000, background: P.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "opacity .8s ease", opacity: leaving ? 0 : 1 }}>
-          <div style={{ background: P.white, padding: "14px 14px 48px", boxShadow: "0 10px 40px rgba(0,0,0,0.08)", width: "65%", maxWidth: 280, position: "relative", transition: "transform .8s", transform: leaving ? "translateY(-30px)" : "translateY(0)" }}>
-            <div style={{ width: "100%", aspectRatio: "3/4", background: `url(${img("childhood", 400, 530)}) center/cover`, filter: "grayscale(30%)" }} />
-            <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontFamily: "'Playfair Display', serif", fontSize: 11, color: P.black, letterSpacing: ".2em" }}>OUR BEGINNING</div>
+        <div style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: P.lightGray, borderRadius: 8, overflow: "hidden", marginTop: 10 }}>
+          <img src={getImg('a')} alt="B컷" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+          <div style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", display: "grid", gridTemplateColumns: "repeat(10, 1fr)", gridTemplateRows: "repeat(10, 1fr)" }}>
+            {Array.from({ length: 100 }).map((_, i) => (
+              <div key={i} onPointerEnter={(e) => { e.target.style.opacity = 0; }} onTouchMove={(e) => { e.target.style.opacity = 0; }}
+                   style={{ background: "#BDBDBD", transition: "opacity 0.2s ease", cursor: "pointer", border: "0.5px solid #AFAFAF" }} />
+            ))}
           </div>
-          <p style={{ marginTop: 40, fontFamily: "'Pretendard', sans-serif", fontSize: 12, fontWeight: 300, color: P.darkGray, letterSpacing: ".1em", animation: "cursorBlink 2s ease-in-out infinite" }}>화면을 터치해 주세요</p>
-        </div>
-      );
-    }
-
-    function Hero() {
-      return (
-        <div style={{ padding: "40px 24px 20px" }}>
-          <div style={{ background: P.white, padding: "16px 16px 50px", boxShadow: "0 8px 24px rgba(0,0,0,0.04)", position: "relative" }}>
-            <img src={img("wedding-main", 600, 800)} alt="웨딩" style={{ width: "100%", display: "block", aspectRatio: "3/4", objectFit: "cover", filter: "contrast(1.05)" }} />
-            <div style={{ position: "absolute", bottom: 18, left: 16, right: 16, display: "flex", justifyContent: "space-between", fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".1em", color: P.black }}>
-              <span>M & S</span><span>2025. 06. 27</span>
-            </div>
+          <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%, -50%)", pointerEvents: "none", color: "#555", fontWeight: "bold", fontSize: 16, textShadow: "0 0 5px #fff" }}>
+            손가락으로 긁어보세요!
           </div>
         </div>
       );
     }
 
-    function Info() {
+    /* 모달 베이스 */
+    function StoryModal({ title, onClose, children }) {
       return (
-        <Reveal>
-          <div style={{ ...S.section, textAlign: "center" }}>
-            <h2 style={{ fontFamily: "'Noto Serif KR', serif", fontSize: 24, fontWeight: 400, margin: "0 0 16px", color: P.black }}>
-              김민준 <span style={{ fontSize: 16, fontFamily: "'Playfair Display', serif", fontStyle: "italic", margin: "0 10px", color: P.gray }}>and</span> 이서연
-            </h2>
-            <div style={S.divider} />
-            <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 14, color: P.black, marginTop: 16, fontWeight: 400, lineHeight: 1.6 }}>
-              2025년 6월 27일 금요일 낮 12시<br />
-              <span style={{ fontSize: 13, color: P.darkGray, marginTop: 4, display: "inline-block" }}>그랜드 하얏트 서울 그랜드볼룸</span>
-            </p>
+        <div style={{ position: "fixed", inset: 0, zIndex: 2000, background: "rgba(0,0,0,0.85)", display: "flex", alignItems: "center", justifyContent: "center", flexDirection: "column", padding: 20, animation: "pop 0.3s ease" }}>
+          <button onClick={onClose} style={{ position: "absolute", top: 20, right: 20, background: "none", border: "none", color: "white", fontSize: 30, cursor: "pointer" }}>✕</button>
+          <div style={{ background: P.white, width: "100%", maxWidth: 360, borderRadius: 16, padding: 24, boxSizing: "border-box", textAlign: "center", position: "relative" }}>
+            {title && <h3 style={{ margin: "0 0 20px", fontSize: 18, color: P.black }}>{title}</h3>}
+            {children}
           </div>
-        </Reveal>
+        </div>
       );
     }
 
-    function Parents() {
-      return (
-        <Reveal>
-          <div style={{ ...S.tight, textAlign: "center", paddingTop: 0, paddingBottom: 30 }}>
-            <div style={{ fontSize: 13, lineHeight: 2.2, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>
-              <p style={{ margin: 0 }}><span style={{ color: P.gray, marginRight: 8 }}>신랑측</span> 김OO · 박OO <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 아들 </span><b>민준</b></p>
-              <p style={{ margin: 0 }}><span style={{ color: P.gray, marginRight: 8 }}>신부측</span> 이OO · 최OO <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 딸 </span><b>서연</b></p>
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
+    /* 갤러리 라이트박스 (확대 보기) */
+    function Lightbox({ images, initialIndex, onClose }) {
+      const [currentIndex, setCurrentIndex] = useState(initialIndex);
+      const [liked, setLiked] = useState({});
 
-    function Contact() {
-      const [open, setOpen] = useState(null);
-      const contacts = {
-        groom: [{ label: "신랑", name: "김민준", tel: "010-1234-5678" }, { label: "신랑 아버지", name: "김OO", tel: "010-1111-2222" }, { label: "신랑 어머니", name: "박OO", tel: "010-3333-4444" }],
-        bride: [{ label: "신부", name: "이서연", tel: "010-5678-1234" }, { label: "신부 아버지", name: "이OO", tel: "010-5555-6666" }, { label: "신부 어머니", name: "최OO", tel: "010-7777-8888" }],
+      const handleLike = () => {
+        setLiked(prev => ({ ...prev, [currentIndex]: !prev[currentIndex] }));
       };
-      return (
-        <Reveal>
-          <div style={{ ...S.tight, textAlign: "center" }}>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-              {["groom", "bride"].map(side => (
-                <button key={side} onClick={() => setOpen(open === side ? null : side)} style={{ ...S.btn, background: open === side ? P.black : P.white, color: open === side ? P.white : P.black, minWidth: 120 }}>
-                  {side === "groom" ? "신랑측" : "신부측"} 연락하기
-                </button>
-              ))}
-            </div>
-            <div style={{ maxHeight: open ? 300 : 0, overflow: "hidden", transition: "max-height .4s ease, opacity .3s ease", opacity: open ? 1 : 0 }}>
-              {open && (
-                <div style={{ marginTop: 16, background: P.white, borderRadius: 8, padding: "14px 16px", border: `1px solid ${P.border}` }}>
-                  {contacts[open]?.map((c, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", fontSize: 13, borderBottom: i < contacts[open].length - 1 ? `1px solid ${P.lightGray}` : "none" }}>
-                      <span><span style={{ color: P.gray, marginRight: 8 }}>{c.label}</span>{c.name}</span>
-                      <a href={`tel:${c.tel}`} style={{ color: P.black, textDecoration: "none", fontSize: 11, padding: "4px 14px", border: `1px solid ${P.black}`, borderRadius: 20 }}>전화</a>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
 
-    function Calendar() {
-      const wd = WEDDING_DATE;
-      const diff = Math.max(0, Math.ceil((wd - new Date()) / 864e5));
-      const y = wd.getFullYear(), m = wd.getMonth();
-      const first = new Date(y, m, 1).getDay();
-      const total = new Date(y, m + 1, 0).getDate();
-      const days = [...Array(first).fill(null), ...Array.from({ length: total }, (_, i) => i + 1)];
-      const dn = ["S", "M", "T", "W", "T", "F", "S"];
       return (
-        <Reveal>
-          <div style={{ ...S.tight, background: P.white, marginTop: 20 }}>
-            <p style={S.title}>Calendar</p>
-            <div style={{ maxWidth: 300, margin: "0 auto" }}>
-              <p style={{ textAlign: "center", fontSize: 14, fontWeight: 600, margin: "0 0 20px", color: P.black, fontFamily: "'Playfair Display', serif" }}>{y}. {String(m + 1).padStart(2, '0')}</p>
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", textAlign: "center", gap: "8px 0" }}>
-                {dn.map((d, i) => <div key={i} style={{ fontSize: 10, color: P.gray, fontFamily: "'Playfair Display', serif" }}>{d}</div>)}
-                {days.map((d, i) => {
-                  const isW = d === wd.getDate();
-                  return (
-                    <div key={i} style={{ padding: "8px 0", position: "relative", color: !d ? "transparent" : (isW ? P.white : P.black), fontSize: 12, fontFamily: "'Pretendard', sans-serif", fontWeight: isW ? 600 : 400 }}>
-                      {isW && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 26, height: 26, borderRadius: "50%", background: P.black, zIndex: 0 }} />}
-                      <span style={{ position: "relative", zIndex: 1 }}>{d}</span>
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
-            <div style={{ textAlign: "center", marginTop: 30 }}>
-              <p style={{ fontSize: 13, color: P.darkGray, fontFamily: "'Pretendard', sans-serif" }}>결혼식까지 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: P.black, margin: "0 6px" }}>{diff}</span> 일</p>
-            </div>
+        <div style={{ position: "fixed", inset: 0, zIndex: 3000, background: "rgba(0,0,0,0.95)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
+          <div style={{ position: "absolute", top: 20, right: 20, color: "white", fontSize: 30, cursor: "pointer", zIndex: 3010 }} onClick={onClose}>✕</div>
+          <div style={{ position: "relative", width: "100%", height: "70vh", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            {currentIndex > 0 && <div onClick={() => setCurrentIndex(currentIndex - 1)} style={{ position: "absolute", left: 10, color: "white", fontSize: 40, cursor: "pointer" }}>‹</div>}
+            <img src={images[currentIndex]} style={{ maxWidth: "100%", maxHeight: "100%", objectFit: "contain" }} />
+            {currentIndex < images.length - 1 && <div onClick={() => setCurrentIndex(currentIndex + 1)} style={{ position: "absolute", right: 10, color: "white", fontSize: 40, cursor: "pointer" }}>›</div>}
           </div>
-        </Reveal>
-      );
-    }
-
-    function Gallery() {
-      const strips = [];
-      for (let i = 0; i < GALLERY_IMAGES.length; i += 4) strips.push(GALLERY_IMAGES.slice(i, i + 4));
-      return (
-        <Reveal delay={100}>
-          <div style={{ ...S.tight, paddingLeft: 0, paddingRight: 0, overflow: "hidden" }}>
-            <p style={S.title}>Life Four Cuts</p>
-            <div style={{ display: "flex", overflowX: "auto", gap: 16, padding: "0 24px 30px", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
-              {strips.map((strip, si) => (
-                <div key={si} style={{ flex: "0 0 220px", scrollSnapAlign: "center", background: P.white, padding: "12px 12px 40px 12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
-                  {strip.map((src, pi) => <div key={pi} style={{ width: "100%", aspectRatio: "3/2", backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center", filter: "contrast(1.1) grayscale(10%)" }} />)}
-                  <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                    <div style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 8, color: P.black, letterSpacing: ".1em", lineHeight: 1.2 }}>M & S WEDDING<br /><span style={{ color: P.gray }}>VOL. {si + 1}</span></div>
-                    <div style={{ display: "flex", gap: 2, height: 12, alignItems: "flex-end", opacity: 0.5 }}>
-                      <div style={{ width: 2, height: "100%", background: P.black }}/><div style={{ width: 1, height: "80%", background: P.black }}/><div style={{ width: 3, height: "100%", background: P.black }}/><div style={{ width: 1, height: "60%", background: P.black }}/><div style={{ width: 2, height: "100%", background: P.black }}/>
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-            <p style={{ textAlign: "center", fontSize: 11, fontFamily: "'Pretendard', sans-serif", color: P.gray, marginTop: "-10px" }}>← 옆으로 넘겨보세요 →</p>
+          <div style={{ padding: "20px", display: "flex", justifyContent: "center", alignItems: "center", gap: 15 }}>
+            <span onClick={handleLike} style={{ fontSize: 32, cursor: "pointer" }}>
+              {liked[currentIndex] ? "❤️" : "🤍"}
+            </span>
+            <span style={{ color: "white", fontSize: 14 }}>{currentIndex + 1} / {images.length}</span>
           </div>
-        </Reveal>
-      );
-    }
-
-    function OurStory() {
-      const qna = [
-        { q: "첫 만남은 어땠나요?", a: "친구 모임에서 처음 만났는데, 웃는 모습이 너무 예뻐서 눈을 뗄 수 없었어요. (민준)" },
-        { q: "결혼을 결심한 계기는?", a: "함께 있을 때 가장 나다운 모습이 된다는 걸 알았을 때, 이 사람이라고 확신했어요. (서연)" }
-      ];
-      return (
-        <Reveal>
-          <div style={{ ...S.tight, background: P.white }}>
-            <p style={S.title}>Interview</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 24, padding: "0 10px" }}>
-              {qna.map((item, i) => (
-                <div key={i} style={{ borderLeft: `2px solid ${P.black}`, paddingLeft: 16 }}>
-                  <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, fontWeight: 600, color: P.black, margin: "0 0 8px" }}>Q. {item.q}</p>
-                  <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, color: P.darkGray, lineHeight: 1.6, margin: 0, fontWeight: 300 }}>A. {item.a}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
-
-    function Location() {
-      return (
-        <Reveal>
-          <div style={{ ...S.tight }}>
-            <p style={S.title}>Location</p>
-            <div style={{ textAlign: "center", fontFamily: "'Pretendard', sans-serif" }}>
-              <p style={{ fontSize: 15, fontWeight: 600, margin: "0 0 4px", color: P.black }}>그랜드 하얏트 서울</p>
-              <p style={{ fontSize: 12, color: P.darkGray, margin: "0 0 2px" }}>그랜드볼룸 1층</p>
-              <p style={{ fontSize: 12, color: P.gray, margin: "0 0 20px" }}>서울특별시 용산구 소월로 322</p>
-              <div style={{ width: "100%", height: 180, background: P.lightGray, marginBottom: 16, border: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: P.gray, fontSize: 12 }}>
-                지도 영역 (API 연동 필요)
-              </div>
-              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-                {["네이버 지도", "카카오맵", "길 찾기"].map(t => <button key={t} style={{ ...S.btn, fontSize: 11, padding: "8px 18px", borderRadius: 4 }}>{t}</button>)}
-              </div>
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
-
-    function Account() {
-      const [open, setOpen] = useState(null);
-      const accounts = { groom: [{ bank: "국민은행", num: "123-456-789012", name: "김민준" }], bride: [{ bank: "카카오뱅크", num: "3333-01-2345678", name: "이서연" }] };
-      const copy = t => { navigator.clipboard.writeText(t).then(() => alert("복사되었습니다.")); };
-      return (
-        <Reveal>
-          <div style={{ ...S.tight, background: P.white }}>
-            <p style={S.title}>Account</p>
-            <p style={{ textAlign: "center", fontSize: 12, color: P.gray, margin: "0 0 20px", fontFamily: "'Pretendard', sans-serif" }}>축하의 마음을 전해 주세요</p>
-            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-              {["groom", "bride"].map(side => (
-                <button key={side} onClick={() => setOpen(open === side ? null : side)} style={{ ...S.btn, background: open === side ? P.black : P.bg, color: open === side ? P.white : P.black, border: "none", minWidth: 120 }}>
-                  {side === "groom" ? "신랑측" : "신부측"} 계좌
-                </button>
-              ))}
-            </div>
-            <div style={{ maxHeight: open ? 200 : 0, overflow: "hidden", transition: "all .3s ease", opacity: open ? 1 : 0 }}>
-              {open && (
-                <div style={{ marginTop: 16, background: P.bg, borderRadius: 8, padding: "12px 16px" }}>
-                  {accounts[open]?.map((a, i) => (
-                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "'Pretendard', sans-serif" }}>
-                      <div><span style={{ color: P.darkGray, marginRight: 8 }}>{a.bank}</span><span style={{ color: P.black }}>{a.num}</span><div style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>{a.name}</div></div>
-                      <button onClick={() => copy(a.num)} style={{ ...S.btn, fontSize: 11, padding: "6px 14px", borderRadius: 4 }}>복사</button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
-
-    function Guestbook() {
-      const [entries, setEntries] = useState([]);
-      const [name, setName] = useState("");
-      const [msg, setMsg] = useState("");
-      useEffect(() => {
-        try { const saved = localStorage.getItem("guestbook"); if (saved) setEntries(JSON.parse(saved)); } catch (e) {}
-      }, []);
-      const submit = () => {
-        if (!name.trim() || !msg.trim()) return;
-        const newEntries = [{ id: Date.now(), name, msg, date: new Date().toLocaleDateString() }, ...entries];
-        setEntries(newEntries);
-        try { localStorage.setItem("guestbook", JSON.stringify(newEntries)); } catch (e) {}
-        setName(""); setMsg("");
-      };
-      const inputStyle = { border: "none", borderBottom: `1px solid ${P.gray}`, borderRadius: 0, padding: "8px 4px", fontSize: 13, fontFamily: "'Pretendard', sans-serif", outline: "none", background: "transparent", width: "100%", boxSizing: "border-box", color: P.black };
-      return (
-        <Reveal>
-          <div style={{ ...S.tight }}>
-            <p style={S.title}>Guest Book</p>
-            <div style={{ background: P.white, padding: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.03)", marginBottom: 20 }}>
-              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}><input value={name} onChange={e => setName(e.target.value)} placeholder="이름" style={inputStyle} /></div>
-              <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="축하 메시지를 남겨주세요." rows={2} style={{ ...inputStyle, resize: "none", borderBottom: "none", background: P.bg, padding: "12px", borderRadius: 4 }} />
-              <button onClick={submit} style={{ ...S.btn, width: "100%", marginTop: 16, background: P.black, color: P.white }}>등록하기</button>
-            </div>
-            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              {entries.map(e => (
-                <div key={e.id} style={{ background: P.white, padding: "16px", borderRadius: 8, border: `1px solid ${P.border}` }}>
-                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontFamily: "'Pretendard', sans-serif" }}><span style={{ fontSize: 13, fontWeight: 600, color: P.black }}>{e.name}</span><span style={{ fontSize: 11, color: P.gray }}>{e.date}</span></div>
-                  <p style={{ fontSize: 13, margin: 0, color: P.darkGray, lineHeight: 1.5, fontFamily: "'Pretendard', sans-serif" }}>{e.msg}</p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
-
-    function RSVP() {
-      const [rn, setRn] = useState("");
-      const [att, setAtt] = useState("");
-      const [sent, setSent] = useState(false);
-      const submit = () => { if (!rn.trim() || !att) return alert("항목을 입력해주세요."); setSent(true); };
-      if (sent) return (
-        <div style={{ ...S.tight, background: P.white, textAlign: "center" }}><p style={S.title}>RSVP</p><p style={{ fontSize: 14, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>참석 여부가 전달되었습니다.<br />감사합니다.</p></div>
-      );
-      return (
-        <Reveal>
-          <div style={{ ...S.tight, background: P.white }}>
-            <p style={S.title}>RSVP</p>
-            <div style={{ maxWidth: 320, margin: "0 auto", fontFamily: "'Pretendard', sans-serif" }}>
-              <input value={rn} onChange={e => setRn(e.target.value)} placeholder="성함" style={{ width: "100%", border: `1px solid ${P.border}`, padding: "12px", fontSize: 13, boxSizing: "border-box", marginBottom: 12, outline: "none" }} />
-              <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-                {["참석", "미정", "불참"].map(o => <button key={o} onClick={() => setAtt(o)} style={{ flex: 1, padding: "10px 0", background: att === o ? P.black : P.bg, color: att === o ? P.white : P.darkGray, border: "none", fontSize: 13, cursor: "pointer" }}>{o}</button>)}
-              </div>
-              <button onClick={submit} style={{ ...S.btn, width: "100%", background: P.black, color: P.white, borderRadius: 4 }}>전달하기</button>
-            </div>
-          </div>
-        </Reveal>
-      );
-    }
-
-    function FloatingMusic({ playing, toggle }) {
-      return (
-        <button onClick={toggle} style={{ position: "fixed", top: 16, right: 16, zIndex: 900, width: 36, height: 36, borderRadius: "50%", border: `1px solid ${P.border}`, background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: P.black, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", animation: playing ? "spin 4s linear infinite" : "none" }}>♫</button>
+        </div>
       );
     }
 
     function WeddingInvitation() {
       const [entered, setEntered] = useState(false);
-      const [fadeIn, setFadeIn] = useState(false);
       const [playing, setPlaying] = useState(false);
+      const [modal, setModal] = useState(null); 
+      const [expanded, setExpanded] = useState({});
+      const [lightboxIndex, setLightboxIndex] = useState(null);
       const audioRef = useRef(null);
+      const dDayDiff = Math.max(0, Math.ceil((WEDDING_DATE - new Date()) / 864e5));
 
-      const enter = () => {
-        setEntered(true);
-        setPlaying(true);
-        setTimeout(() => setFadeIn(true), 50);
-      };
+      const [mainLiked, setMainLiked] = useState(false);
+      const [hearts, setHearts] = useState([]);
+
+      const [voted, setVoted] = useState(false);
+      const [votes, setVotes] = useState({ 1: 52, 2: 18, 3: 30 });
+      const [quizState, setQuizState] = useState(null);
+      const [confetti, setConfetti] = useState(false);
+
+      const [entries, setEntries] = useState([]);
+      const [guestName, setGuestName] = useState("");
+      const [guestMsg, setGuestMsg] = useState("");
+
+      const enter = () => { setEntered(true); setPlaying(true); };
+      const toggleExpand = (key) => setExpanded({ ...expanded, [key]: !expanded[key] });
 
       useEffect(() => {
-        if (audioRef.current) {
-          playing ? audioRef.current.play().catch(() => {}) : audioRef.current.pause();
-        }
+        if (audioRef.current) { playing ? audioRef.current.play().catch(()=>{}) : audioRef.current.pause(); }
       }, [playing]);
 
-      return (
-        <React.Fragment>
-          <style>{`
-            @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
-            @keyframes spin { to { transform: rotate(360deg); } }
-          `}</style>
+      useEffect(() => {
+        try { const saved = localStorage.getItem("guestbook"); if (saved) setEntries(JSON.parse(saved)); } catch (e) {}
+      }, []);
 
-          <audio ref={audioRef} loop preload="auto"><source src="" type="audio/mpeg" /></audio>
+      const submitGuestbook = () => {
+        if (!guestName.trim() || !guestMsg.trim()) return;
+        const newEntries = [{ id: Date.now(), name: guestName, msg: guestMsg, date: new Date().toLocaleDateString() }, ...entries];
+        setEntries(newEntries);
+        try { localStorage.setItem("guestbook", JSON.stringify(newEntries)); } catch (e) {}
+        setGuestName(""); setGuestMsg("");
+      };
 
-          {!entered && <Splash onEnter={enter} />}
+      const handleLikeAction = (e) => {
+        setMainLiked(true);
+        const id = Date.now();
+        const rect = e.currentTarget.getBoundingClientRect();
+        const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left - 10;
+        const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top - 10;
+        
+        setHearts(prev => [...prev, { id, x, y }]);
+        setTimeout(() => setHearts(prev => prev.filter(h => h.id !== id)), 1200);
+      };
 
-          <div style={{ fontFamily: "'Pretendard', sans-serif", color: P.black, background: P.bg, maxWidth: 480, minHeight: "100vh", margin: "0 auto", position: "relative", overflowX: "hidden", opacity: fadeIn ? 1 : 0, transition: "opacity .8s ease", paddingBottom: 60 }}>
-            <FloatingMusic playing={playing} toggle={() => setPlaying(!playing)} />
-            <Hero />
-            <Info />
-            <Parents />
-            <Contact />
-            <Calendar />
-            <Gallery />
-            <OurStory />
-            <Location />
-            <Account />
-            <Guestbook />
-            <RSVP />
-            <div style={{ textAlign: "center", marginTop: 40, fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".2em", color: P.gray }}>
-              M & S <br/><span style={{ fontSize: 8, opacity: 0.6 }}>2025. 06. 27</span>
+      if (!entered) {
+        return (
+          <div onClick={enter} style={{ position: "fixed", inset: 0, background: "#000", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer" }}>
+            <img src={getImg(0)} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
+            <div style={{ position: "absolute", color: P.white, textAlign: "center" }}>
+              <div style={{ fontSize: 14, letterSpacing: "2px", marginBottom: 10 }}>M & H WEDDING</div>
+              <div style={{ padding: "10px 24px", border: "1px solid white", borderRadius: 30, fontSize: 12 }}>터치해서 초대장 열기</div>
             </div>
           </div>
-        </React.Fragment>
+        );
+      }
+
+      return (
+        <div style={{ maxWidth: 480, margin: "0 auto", minHeight: "100vh", position: "relative", paddingBottom: 60 }}>
+          
+          <button onClick={() => setPlaying(!playing)} style={{ position: "fixed", top: 12, right: 12, zIndex: 900, width: 36, height: 36, borderRadius: "50%", border: `1px solid ${P.lightGray}`, background: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", animation: playing ? "spin 4s linear infinite" : "none" }}>♫</button>
+          <audio ref={audioRef} loop preload="auto"><source src="" type="audio/mpeg" /></audio>
+
+          {/* 인스타 프로필 헤더 */}
+          <div style={{ display: "flex", alignItems: "center", padding: "20px 16px", background: P.white, borderBottom: `1px solid ${P.border}` }}>
+            <div style={{ width: 76, height: 76, borderRadius: "50%", padding: 3, background: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)` }}>
+              <img src={getImg(16)} style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} />
+            </div>
+            <div style={{ flex: 1, marginLeft: 20 }}>
+              <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>석민규 & 김하민</div>
+              <div style={{ display: "flex", gap: 16, fontSize: 13, textAlign: "center" }}>
+                <div><span style={{ fontWeight: 600 }}>26</span><br/>년</div>
+                <div><span style={{ fontWeight: 600 }}>06</span><br/>월</div>
+                <div><span style={{ fontWeight: 600 }}>27</span><br/>일</div>
+              </div>
+            </div>
+          </div>
+          <div style={{ padding: "12px 16px", background: P.white, fontSize: 13, lineHeight: 1.5 }}>
+            💍 더누벨 포항 13:00 PM<br/>
+            서로 다른 길을 걸어온 두 사람이 하나 되는 날,<br/>
+            축복해 주시면 감사하겠습니다.
+          </div>
+
+          {/* 스토리 하이라이트 */}
+          <div style={{ display: "flex", gap: 16, padding: "16px", overflowX: "auto", background: P.white, borderBottom: `1px solid ${P.border}` }}>
+            {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'bcut', icon: '🤫', label: 'B컷 해제' }, { id: 'youtube', icon: '▶️', label: '식전 영상' } ].map(item => (
+              <div key={item.id} onClick={() => setModal(item.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                <div style={{ width: 60, height: 60, borderRadius: "50%", border: `1px solid ${P.lightGray}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, background: P.bg }}>{item.icon}</div>
+                <div style={{ fontSize: 11 }}>{item.label}</div>
+              </div>
+            ))}
+          </div>
+
+          {/* 메인 피드 */}
+          <div style={{ background: P.white, marginTop: 10 }}>
+            <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
+              <div style={{ width: 30, height: 30, borderRadius: "50%", background: `url(${getImg(16)}) center/cover` }}/>
+              <span style={{ fontSize: 13, fontWeight: 600 }}>wedding_day</span>
+            </div>
+            
+            <div style={{ position: "relative", overflow: "hidden", cursor: "pointer" }} onDoubleClick={handleLikeAction}>
+              <img src={getImg('00')} style={{ width: "100%", aspectRatio: "4/5", objectFit: "cover", display: "block" }} />
+              {hearts.map(h => <div key={h.id} className="floating-heart" style={{ left: h.x, top: h.y }}>❤️</div>)}
+            </div>
+
+            <div style={{ padding: "12px 16px" }}>
+              <div style={{ display: "flex", gap: 12, fontSize: 24, marginBottom: 10 }}>
+                <span onClick={handleLikeAction} style={{ cursor: "pointer", color: mainLiked ? P.pink : "inherit" }}>
+                  {mainLiked ? "❤️" : "♡"}
+                </span> 💬 ↗️
+              </div>
+              <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 6 }}>
+                좋아요 무지하게 <span style={{ color: P.gray, marginLeft: 10, fontWeight: 400 }}>D-{dDayDiff}</span>
+              </div>
+              <div style={{ fontSize: 13, lineHeight: 1.5 }}>
+                <span style={{ fontWeight: 600 }}>wedding_day</span> 저희 결혼합니다! 🎉<br/>
+                <br/>
+                가장 나다운 모습으로 사랑할 수 있는 사람을 만났습니다.<br/>
+                저희의 새로운 시작을 함께 축복해 주세요! 💖
+              </div>
+            </div>
+          </div>
+
+          {/* 아코디언 메뉴들 */}
+          <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
+            
+            {/* 혼주 (가족 관계) 세련된 디자인 아코디언 */}
+            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+              <div onClick={() => toggleExpand('parents')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
+                👨‍👩‍👧‍👦 혼주 안내 <span>{expanded['parents'] ? '▲' : '▼'}</span>
+              </div>
+              {expanded['parents'] && (
+                <div style={{ padding: "24px 16px", borderTop: `1px solid ${P.bg}`, textAlign: "center", background: P.white }}>
+                  {/* 신랑 측 */}
+                  <div style={{ marginBottom: 24 }}>
+                    <span style={{ fontSize: 12, color: P.pink, fontWeight: 600, letterSpacing: 2, display: "block", marginBottom: 8 }}>GROOM</span>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, fontSize: 16 }}>
+                      <span style={{ fontWeight: 500, color: P.black }}>석윤식 · 한은향</span>
+                      <span style={{ fontSize: 13, color: P.gray }}>의 아들</span>
+                      <span style={{ fontWeight: 600, fontSize: 18, color: P.black }}>석민규</span>
+                    </div>
+                  </div>
+                  {/* 중앙 선 */}
+                  <div style={{ width: 40, height: 1, background: P.lightGray, margin: "0 auto 24px" }} />
+                  {/* 신부 측 */}
+                  <div>
+                    <span style={{ fontSize: 12, color: P.pink, fontWeight: 600, letterSpacing: 2, display: "block", marginBottom: 8 }}>BRIDE</span>
+                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, fontSize: 16 }}>
+                      <span style={{ fontWeight: 500, color: P.black }}>김진수 · 최현욱</span>
+                      <span style={{ fontSize: 13, color: P.gray }}>의 딸</span>
+                      <span style={{ fontWeight: 600, fontSize: 18, color: P.black }}>김하민</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 우리의 이야기 (카카오톡 감성) */}
+            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+              <div onClick={() => toggleExpand('story')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
+                💬 우리의 이야기 <span>{expanded['story'] ? '▲' : '▼'}</span>
+              </div>
+              {expanded['story'] && (
+                <div style={{ padding: "16px", borderTop: `1px solid ${P.bg}`, background: "#b2c7d9" }}> {/* 카톡 배경색 */}
+                  <div style={{ textAlign: "center", fontSize: 11, color: "#fff", background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "4px 12px", margin: "0 auto 16px", width: "fit-content" }}>2024년 벚꽃 피던 날</div>
+                  
+                  {/* 상대방(하민) */}
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "14px", background: `url(${getImg(16)}) center/cover` }} />
+                    <div>
+                      <div style={{ fontSize: 12, color: "#4a4a4a", marginBottom: 4 }}>하민이💖</div>
+                      <div style={{ background: "#fff", padding: "8px 12px", borderRadius: "0 12px 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                        오빠, 오늘 영화 재밌었어요! 😊 조심해서 들어가요~
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* 나(민규) */}
+                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+                    <div style={{ background: "#fee500", padding: "8px 12px", borderRadius: "12px 0 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                      응 하민아! 나도 진짜 즐거웠어. 사실 오늘 하고 싶은 말이 있었는데...
+                    </div>
+                  </div>
+
+                  {/* 상대방(하민) */}
+                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
+                    <div style={{ width: 36, height: 36, borderRadius: "14px", background: `url(${getImg(16)}) center/cover` }} />
+                    <div>
+                      <div style={{ fontSize: 12, color: "#4a4a4a", marginBottom: 4 }}>하민이💖</div>
+                      <div style={{ background: "#fff", padding: "8px 12px", borderRadius: "0 12px 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                        네? 무슨 말이에요? 👀
+                      </div>
+                    </div>
+                  </div>
+
+                   {/* 나(민규) */}
+                   <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
+                    <div style={{ background: "#fee500", padding: "8px 12px", borderRadius: "12px 0 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
+                      우리 내일도, 모레도, 앞으로도 계속 같이 영화 볼래? 나랑 만나자!
+                    </div>
+                  </div>
+
+                  <div style={{ textAlign: "center", fontSize: 11, color: "#fff", background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "4px 12px", margin: "24px auto 16px", width: "fit-content" }}>2026년 6월 27일</div>
+
+                  {/* 시스템 텍스트 */}
+                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
+                    <div style={{ background: "rgba(0,0,0,0.15)", padding: "6px 14px", borderRadius: "16px", fontSize: 12, color: "#fff" }}>
+                      석민규 님과 김하민 님이 평생을 함께하기로 했습니다. 🎉
+                    </div>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* 사진첩 아코디언 */}
+            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+              <div onClick={() => toggleExpand('gallery')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
+                📸 사진첩 보기 (30장) <span>{expanded['gallery'] ? '▲' : '▼'}</span>
+              </div>
+              {expanded['gallery'] && (
+                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 2, padding: "0 2px 2px" }}>
+                  {GALLERY_IMAGES.map((src, i) => (
+                    <div key={i} onClick={() => setLightboxIndex(i)} style={{ width: "100%", aspectRatio: "1", backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center", cursor: "pointer" }} />
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* 오시는 길 아코디언 */}
+            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+              <div onClick={() => toggleExpand('location')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
+                📍 오시는 길 <span>{expanded['location'] ? '▲' : '▼'}</span>
+              </div>
+              {expanded['location'] && (
+                <div style={{ padding: "16px", borderTop: `1px solid ${P.bg}`, fontSize: 13, textAlign: "center" }}>
+                  <p style={{ fontWeight: 600, fontSize: 15, margin: "0 0 5px" }}>더누벨 포항</p>
+                  <p style={{ margin: "0 0 16px", color: P.gray }}>경북 포항시 남구 새천년대로 483</p>
+                  <div style={{ background: P.bg, height: 150, display: "flex", alignItems: "center", justifyContent: "center", borderRadius: 8, marginBottom: 16, color: P.gray }}>지도 API 연동 영역</div>
+                </div>
+              )}
+            </div>
+
+            {/* 마음 전하실 곳 아코디언 */}
+            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+              <div onClick={() => toggleExpand('account')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
+                💌 마음 전하실 곳 <span>{expanded['account'] ? '▲' : '▼'}</span>
+              </div>
+              {expanded['account'] && (
+                <div style={{ padding: "16px", borderTop: `1px solid ${P.bg}`, fontSize: 13 }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 10, paddingBottom: 10, borderBottom: `1px solid ${P.bg}` }}>
+                    <div><span style={{ color: P.gray }}>신랑 측</span> 00은행 123-456-789</div>
+                    <button onClick={()=>alert("복사되었습니다")} style={{ border: "none", background: P.bg, borderRadius: 4, padding: "4px 8px", fontSize: 11 }}>복사</button>
+                  </div>
+                  <div style={{ display: "flex", justifyContent: "space-between" }}>
+                    <div><span style={{ color: P.gray }}>신부 측</span> 00은행 987-654-321</div>
+                    <button onClick={()=>alert("복사되었습니다")} style={{ border: "none", background: P.bg, borderRadius: 4, padding: "4px 8px", fontSize: 11 }}>복사</button>
+                  </div>
+                </div>
+              )}
+            </div>
+            
+            {/* 참석 여부 (RSVP) */}
+            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
+              <div onClick={() => toggleExpand('rsvp')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
+                💌 참석 여부 전달하기 <span>{expanded['rsvp'] ? '▲' : '▼'}</span>
+              </div>
+              {expanded['rsvp'] && (
+                <div style={{ padding: "16px", borderTop: `1px solid ${P.bg}`, fontSize: 13 }}>
+                  <p style={{ color: P.gray, marginBottom: 12 }}>원활한 예식 진행을 위해 참석 여부를 알려주세요.</p>
+                  <div style={{ display: "flex", gap: 10 }}>
+                    <button onClick={() => alert("참석으로 전달되었습니다. 감사합니다!")} style={{ flex: 1, padding: "12px", border: "none", background: P.black, color: P.white, borderRadius: 6, fontWeight: 600 }}>참석할게요</button>
+                    <button onClick={() => alert("마음만으로도 감사합니다.")} style={{ flex: 1, padding: "12px", border: `1px solid ${P.lightGray}`, background: P.white, color: P.black, borderRadius: 6, fontWeight: 600 }}>마음으로 축하</button>
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* 방명록 (인스타 댓글 스타일) */}
+          <div style={{ padding: "16px", background: P.white, marginTop: 10, borderTop: `1px solid ${P.border}` }}>
+            <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>댓글 {entries.length}개</div>
+            
+            <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
+              {entries.map(e => (
+                <div key={e.id} style={{ display: "flex", gap: 10 }}>
+                  <div style={{ width: 30, height: 30, borderRadius: "50%", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12 }}>👤</div>
+                  <div>
+                    <span style={{ fontSize: 13, fontWeight: 600, marginRight: 8 }}>{e.name}</span>
+                    <span style={{ fontSize: 13 }}>{e.msg}</span>
+                    <div style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>{e.date}</div>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {/* 댓글 입력창 */}
+            <div style={{ display: "flex", gap: 10, alignItems: "center", background: P.bg, padding: "10px 16px", borderRadius: 30 }}>
+              <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="이름" style={{ width: "60px", border: "none", background: "transparent", fontSize: 13, outline: "none", borderRight: `1px solid ${P.lightGray}` }} />
+              <input value={guestMsg} onChange={e => setGuestMsg(e.target.value)} placeholder="축하 메시지 달기..." style={{ flex: 1, border: "none", background: "transparent", fontSize: 13, outline: "none" }} />
+              <button onClick={submitGuestbook} style={{ border: "none", background: "transparent", color: P.blue, fontWeight: 600, fontSize: 13, cursor: "pointer", padding: 0 }}>게시</button>
+            </div>
+          </div>
+
+          {/* 팝업 모달창들 */}
+          {modal === 'poll' && (
+            <StoryModal title="📊 하객 투표소" onClose={() => setModal(null)}>
+              <p style={{ fontSize: 14, marginBottom: 20 }}>Q. 결혼식 당일, 누가 먼저 울까요?</p>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {[{id: 1, label: "눈물 많은 신부"}, {id: 2, label: "은근 여린 신랑"}, {id: 3, label: "양가 부모님"}].map(opt => {
+                  const total = Object.values(votes).reduce((a, b) => a + b, 0);
+                  const percent = Math.round((votes[opt.id] / total) * 100);
+                  return (
+                    <div key={opt.id} onClick={() => { if(!voted){ setVotes({...votes, [opt.id]: votes[opt.id]+1}); setVoted(true); } }} style={{ background: P.bg, border: `1px solid ${P.border}`, borderRadius: 8, padding: "12px", position: "relative", cursor: "pointer", overflow: "hidden" }}>
+                      {voted && <div style={{ position: "absolute", top: 0, left: 0, height: "100%", width: `${percent}%`, background: P.pink, opacity: 0.15, transition: "width 0.5s ease" }} />}
+                      <div style={{ position: "relative", display: "flex", justifyContent: "space-between", fontSize: 13, fontWeight: 500 }}>
+                        <span>{opt.label}</span>
+                        {voted && <span style={{ color: P.pink }}>{percent}%</span>}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </StoryModal>
+          )}
+
+          {modal === 'quiz' && (
+            <StoryModal title="💯 TMI 모의고사" onClose={() => setModal(null)}>
+              {confetti && <div style={{ position: "fixed", inset: 0, fontSize: 30, pointerEvents: "none", animation: "confettiFall 2s linear", zIndex: 9999 }}>🎉🎊🌸🌷</div>}
+              <div className={quizState === 'wrong' ? 'shake' : ''}>
+                <p style={{ fontSize: 14, marginBottom: 20, lineHeight: 1.4 }}>Q. 두 사람이 처음 만난 장소는?</p>
+                <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                  <button onClick={() => { setQuizState("wrong"); setTimeout(()=>setQuizState(null), 500); }} style={{ padding: "12px", borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontSize: 13 }}>1. 대학교 도서관</button>
+                  <button onClick={() => { setQuizState("correct"); setConfetti(true); setTimeout(()=>setConfetti(false), 3000); }} style={{ padding: "12px", borderRadius: 8, border: `1px solid ${P.blue}`, background: P.white, color: P.blue, fontWeight: 600, fontSize: 13 }}>2. 친구의 소개팅</button>
+                  <button onClick={() => { setQuizState("wrong"); setTimeout(()=>setQuizState(null), 500); }} style={{ padding: "12px", borderRadius: 8, border: `1px solid ${P.border}`, background: P.white, fontSize: 13 }}>3. 퇴근길 헬스장</button>
+                </div>
+                {quizState === 'wrong' && <p style={{ color: "red", fontSize: 12, marginTop: 12 }}>땡! 다시 생각해보세요 ㅋㅋ</p>}
+                {quizState === 'correct' && <p style={{ color: P.blue, fontSize: 12, marginTop: 12, fontWeight: "bold" }}>정답입니다! 🎉</p>}
+              </div>
+            </StoryModal>
+          )}
+
+          {modal === 'bcut' && (
+            <StoryModal title="🤫 우리의 진짜 모습" onClose={() => setModal(null)}>
+              <p style={{ fontSize: 13, color: P.gray, marginBottom: 10 }}>시크함은 잊어주세요. 회색 창을 긁어보세요!</p>
+              <ScratchCard />
+            </StoryModal>
+          )}
+
+          {modal === 'youtube' && (
+            <StoryModal title="▶️ 식전 영상 미리보기" onClose={() => setModal(null)}>
+              <div style={{ width: "100%", aspectRatio: "16/9", background: P.black, borderRadius: 8, overflow: "hidden" }}>
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+              </div>
+            </StoryModal>
+          )}
+
+          {/* 사진 확대 보기 (라이트박스) */}
+          {lightboxIndex !== null && (
+            <Lightbox images={GALLERY_IMAGES} initialIndex={lightboxIndex} onClose={() => setLightboxIndex(null)} />
+          )}
+
+          <div style={{ textAlign: "center", padding: "40px 0 20px", fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".2em", color: P.gray }}>
+            MINGYU & HAMIN <br/> 2026. 06. 27
+          </div>
+        </div>
       );
     }
 
-    // 리액트를 화면에 그려주는 핵심 명령어
     const root = ReactDOM.createRoot(document.getElementById('root'));
     root.render(<WeddingInvitation />);
   </script>
