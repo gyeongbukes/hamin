@@ -1,1106 +1,525 @@
-<!DOCTYPE html>
-<html lang="ko">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>성민 ♥ 수빈 결혼합니다</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400&family=Gowun+Batang:wght@400;700&family=Nanum+Pen+Script&family=Noto+Serif+KR:wght@200;300;400;600&display=swap" rel="stylesheet">
-<style>
-*,*::before,*::after{margin:0;padding:0;box-sizing:border-box}
-:root{
-  --cream:#FBF8F1;--warm:#FFFDF7;--gold:#C9A96E;--gold-lt:#E8D5B0;--gold-dk:#A68B4B;
-  --sage:#8FA68B;--sage-lt:#B5C9B1;--rose:#D4A0A0;--rose-lt:#F0D5D5;--rose-dk:#B87878;
-  --lavender:#C4B1D4;--lavender-lt:#E8DFF0;--sky:#A7C7D9;--sky-lt:#D4E8F0;
-  --peach:#F0C9A0;--peach-lt:#FAE6D0;
-  --txt:#3A3632;--txt-m:#6B6560;--txt-l:#9B958F;--div:#E8E2DA;--bg-s:#F5F0EA;
-  --kakao-bg:#9BBAD8;--kakao-my:#FEE500;--kakao-other:#FFFFFF;
-}
-html{scroll-behavior:smooth}
-body{
-  font-family:'Gowun Batang','Noto Serif KR',serif;
-  background:var(--cream);color:var(--txt);
-  max-width:480px;margin:0 auto;overflow-x:hidden;
-  -webkit-font-smoothing:antialiased;
-}
+import { useState, useEffect, useRef, useCallback } from "react";
 
-/* ====== WATERCOLOR BACKGROUND TEXTURE ====== */
-body::before{
-  content:'';position:fixed;inset:0;z-index:-1;pointer-events:none;
-  background:
-    radial-gradient(ellipse at 20% 10%, rgba(240,201,160,0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 80% 30%, rgba(196,177,212,0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 10% 60%, rgba(167,199,217,0.2) 0%, transparent 50%),
-    radial-gradient(ellipse at 90% 80%, rgba(240,213,213,0.25) 0%, transparent 50%),
-    radial-gradient(ellipse at 50% 50%, rgba(181,201,177,0.15) 0%, transparent 60%);
-}
+const WEDDING_DATE = new Date("2025-06-27T12:00:00");
+const img = (id, w = 400, h = 400) => `https://picsum.photos/seed/wed${id}/${w}/${h}`;
+const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => img(i + 10, 600, 400));
 
-/* ====== WATERCOLOR DIVIDER ====== */
-.wc-divider{
-  width:200px;height:30px;margin:0 auto 24px;position:relative;opacity:0.5;
-}
-.wc-divider svg{width:100%;height:100%}
+// 시크하고 모던한 컬러 팔레트 (블랙 & 화이트 & 그레이)
+const P = {
+  bg: "#F4F4F4",
+  white: "#FFFFFF",
+  black: "#111111",
+  darkGray: "#555555",
+  gray: "#999999",
+  lightGray: "#E5E5E5",
+  border: "#DDDDDD",
+};
 
-/* ====== FLOWER PETALS FLOATING ====== */
-.petal{
-  position:fixed;z-index:9998;pointer-events:none;
-  font-size:18px;opacity:0;
-  animation:petalFall linear forwards;
-}
-@keyframes petalFall{
-  0%{opacity:0;transform:translateY(-20px) rotate(0deg) scale(0.8)}
-  10%{opacity:0.7}
-  90%{opacity:0.5}
-  100%{opacity:0;transform:translateY(100vh) rotate(720deg) scale(0.4)}
-}
-
-/* ====== INTRO OVERLAY ====== */
-.intro-overlay{
-  position:fixed;inset:0;z-index:9999;
-  background:linear-gradient(135deg, #FBF8F1 0%, #FAE6D0 30%, #E8DFF0 60%, #D4E8F0 100%);
-  display:flex;flex-direction:column;align-items:center;justify-content:center;
-  cursor:pointer;transition:opacity 1s,visibility 1s;
-  overflow:hidden;
-}
-.intro-overlay.hidden{opacity:0;visibility:hidden;pointer-events:none}
-.intro-watercolor-blob{
-  position:absolute;border-radius:50%;filter:blur(60px);opacity:0.4;
-  animation:blobFloat 8s ease-in-out infinite;
-}
-.intro-watercolor-blob:nth-child(1){width:300px;height:300px;background:var(--rose-lt);top:-50px;left:-80px;animation-delay:0s}
-.intro-watercolor-blob:nth-child(2){width:250px;height:250px;background:var(--lavender-lt);bottom:-30px;right:-60px;animation-delay:2s}
-.intro-watercolor-blob:nth-child(3){width:200px;height:200px;background:var(--sky-lt);top:40%;left:60%;animation-delay:4s}
-@keyframes blobFloat{0%,100%{transform:translate(0,0) scale(1)}50%{transform:translate(20px,-20px) scale(1.1)}}
-
-.intro-flower{font-size:48px;margin-bottom:20px;animation:introFloat 3s ease-in-out infinite}
-@keyframes introFloat{0%,100%{transform:translateY(0) rotate(0deg)}50%{transform:translateY(-10px) rotate(5deg)}}
-
-/* HANDWRITING SVG */
-.handwriting-svg{width:300px;height:120px;margin-bottom:20px}
-.handwriting-svg .stroke{
-  fill:none;stroke:var(--txt);stroke-width:2;
-  stroke-dasharray:var(--len);stroke-dashoffset:var(--len);
-  animation:draw 3s ease forwards;
-}
-.handwriting-svg .stroke.s2{animation-delay:0.8s}
-.handwriting-svg .stroke.heart-stroke{stroke:var(--rose);animation-delay:1.6s;stroke-width:2.5}
-@keyframes draw{to{stroke-dashoffset:0}}
-
-.intro-date{
-  font-family:'Cormorant Garamond',serif;font-size:13px;
-  letter-spacing:6px;color:var(--gold);margin-top:8px;font-weight:300;
-}
-.intro-tap{
-  color:var(--txt-l);font-size:13px;margin-top:40px;
-  animation:pulse 2s ease-in-out infinite;
-}
-@keyframes pulse{0%,100%{opacity:0.3}50%{opacity:1}}
-
-/* ====== VINYL LP PLAYER ====== */
-.vinyl-player{
-  position:fixed;bottom:20px;right:16px;z-index:1000;
-  width:64px;height:64px;cursor:pointer;
-  filter:drop-shadow(0 4px 12px rgba(0,0,0,0.15));
-  transition:transform 0.3s;
-}
-.vinyl-player:hover{transform:scale(1.1)}
-.vinyl-player:active{transform:scale(0.95)}
-.vinyl-disc{
-  width:64px;height:64px;border-radius:50%;
-  background:radial-gradient(circle at center, #222 0%, #222 12%, #333 13%, #1a1a1a 14%, 
-    #333 25%, #222 26%, #333 27%, #1a1a1a 28%,
-    #333 40%, #222 41%, #333 42%, #1a1a1a 43%,
-    #333 55%, #222 56%, #333 57%, #1a1a1a 58%,
-    #333 70%, #222 71%, #333 72%, #1a1a1a 73%,
-    #333 85%, #222 86%, #333 87%, #1a1a1a 88%,
-    #222 100%);
-  position:relative;
-  transition:none;
-}
-.vinyl-disc.spinning{animation:spin 2s linear infinite}
-@keyframes spin{to{transform:rotate(360deg)}}
-.vinyl-label{
-  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
-  width:22px;height:22px;border-radius:50%;
-  background:radial-gradient(circle, var(--gold) 0%, var(--gold-dk) 60%, var(--gold) 100%);
-  display:flex;align-items:center;justify-content:center;
-}
-.vinyl-hole{width:4px;height:4px;border-radius:50%;background:#222}
-.vinyl-arm{
-  position:absolute;top:-8px;right:-4px;width:28px;height:3px;
-  background:linear-gradient(90deg,#999,#ccc);border-radius:2px;
-  transform-origin:right center;transform:rotate(-30deg);
-  transition:transform 0.5s ease;
-}
-.vinyl-arm.playing{transform:rotate(-10deg)}
-.vinyl-arm::after{
-  content:'';position:absolute;left:-2px;top:-1px;
-  width:5px;height:5px;border-radius:50%;background:#888;
-}
-.vinyl-status{
-  position:absolute;bottom:-20px;left:50%;transform:translateX(-50%);
-  font-size:10px;color:var(--txt-l);white-space:nowrap;letter-spacing:1px;
-  font-family:'Cormorant Garamond',serif;
-}
-
-/* ====== HERO ====== */
-.hero{position:relative;width:100%;height:100vh;min-height:600px;overflow:hidden}
-.hero-img{width:100%;height:100%;object-fit:cover;filter:brightness(0.85) saturate(0.9)}
-.hero-overlay{
-  position:absolute;inset:0;
-  background:linear-gradient(to bottom, 
-    rgba(251,248,241,0.1) 0%, transparent 30%, transparent 50%,
-    rgba(251,248,241,0.4) 70%, var(--cream) 100%);
-}
-.hero-text{
-  position:absolute;bottom:60px;left:0;right:0;text-align:center;padding:0 24px;
-}
-.hero-text .en{
-  font-family:'Cormorant Garamond',serif;font-size:13px;
-  letter-spacing:8px;text-transform:uppercase;color:var(--gold);
-  margin-bottom:12px;font-weight:300;
-}
-.hero-text .names{
-  font-family:'Gowun Batang',serif;font-size:32px;font-weight:400;
-  color:var(--txt);letter-spacing:4px;margin-bottom:8px;
-}
-.hero-text .heart{color:var(--rose);font-size:20px;margin:0 8px}
-.hero-text .date{
-  font-family:'Cormorant Garamond',serif;font-size:15px;
-  color:var(--txt-m);letter-spacing:3px;font-weight:300;
-}
-
-/* ====== SECTIONS ====== */
-section{padding:60px 28px}
-.s-title{
-  font-family:'Cormorant Garamond',serif;font-size:12px;
-  letter-spacing:6px;text-transform:uppercase;color:var(--gold);
-  text-align:center;margin-bottom:8px;font-weight:400;
-}
-.s-heading{
-  font-family:'Gowun Batang',serif;font-size:22px;font-weight:400;
-  text-align:center;color:var(--txt);margin-bottom:32px;
-}
-.divider{width:40px;height:1px;background:var(--gold-lt);margin:0 auto 32px}
-
-/* ====== INFO ====== */
-.info-section{text-align:center;padding-top:20px}
-.info-date{font-family:'Cormorant Garamond',serif;font-size:42px;font-weight:300;color:var(--gold);margin-bottom:4px}
-.info-dt{font-size:15px;color:var(--txt-m);line-height:1.8;margin-bottom:4px}
-.info-venue{font-size:16px;color:var(--txt);font-weight:600;margin-bottom:4px}
-.info-venue-d{font-size:13px;color:var(--txt-l)}
-
-/* ====== INVITATION ====== */
-.inv-text{text-align:center;font-size:15px;line-height:2.2;color:var(--txt-m);word-break:keep-all}
-.parents{text-align:center;font-size:14px;color:var(--txt-m);line-height:2.4;margin-top:40px}
-.parents .role{color:var(--txt-l);font-size:12px;letter-spacing:2px}
-.parents strong{color:var(--txt);font-weight:400}
-
-/* ====== CONTACT ====== */
-.contact-section{padding:30px 28px 60px}
-.contact-btn{
-  display:block;width:100%;max-width:280px;margin:0 auto;padding:14px 0;
-  border:1px solid var(--gold-lt);background:transparent;color:var(--gold-dk);
-  font-family:'Gowun Batang',serif;font-size:14px;cursor:pointer;
-  border-radius:4px;transition:all 0.3s;letter-spacing:2px;
-}
-.contact-btn:hover{background:var(--gold);color:white}
-.panel{max-height:0;overflow:hidden;transition:max-height 0.5s ease;max-width:320px;margin:0 auto}
-.panel.open{max-height:500px}
-.contact-list{padding-top:20px}
-.contact-item{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--div)}
-.contact-item:last-child{border-bottom:none}
-.c-name{font-size:14px;color:var(--txt)}
-.c-name span{font-size:12px;color:var(--txt-l);margin-left:6px}
-.c-call{
-  display:inline-flex;align-items:center;gap:4px;padding:6px 14px;
-  border:1px solid var(--sage-lt);border-radius:20px;font-size:12px;
-  color:var(--sage);text-decoration:none;transition:all 0.3s;
-}
-.c-call:hover{background:var(--sage);color:white}
-
-/* ====== CALENDAR ====== */
-.cal-section{background:var(--bg-s);padding:60px 28px;text-align:center}
-.cal{max-width:340px;margin:0 auto 24px}
-.cal-head{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--txt);margin-bottom:16px;letter-spacing:2px}
-.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
-.cal-dn{font-size:11px;color:var(--txt-l);padding:8px 0;letter-spacing:1px}
-.cal-dn:first-child{color:var(--rose)}.cal-dn:last-child{color:var(--sky)}
-.cal-d{padding:8px 0;font-size:14px;color:var(--txt-m);position:relative}
-.cal-d.empty{visibility:hidden}
-.cal-d.sun{color:var(--rose)}.cal-d.sat{color:var(--sky)}
-.cal-d.today{color:white;font-weight:600}
-.cal-d.today::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:var(--rose);z-index:-1}
-.cal-d.wedding{color:white;font-weight:600}
-.cal-d.wedding::before{content:'';position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:32px;height:32px;border-radius:50%;background:var(--gold);z-index:-1}
-.dday-box{
-  display:inline-flex;align-items:center;gap:8px;padding:12px 28px;
-  background:white;border-radius:30px;box-shadow:0 2px 12px rgba(0,0,0,0.05);
-}
-.dday-heart{color:var(--rose);font-size:16px}
-.dday-text{font-size:14px;color:var(--txt-m)}
-.dday-text strong{color:var(--gold-dk);font-weight:600}
-
-/* ====== POLAROID GALLERY ====== */
-.gallery-section{
-  padding:60px 16px;position:relative;overflow:hidden;
-  min-height:600px;
-}
-.gallery-shake-hint{
-  text-align:center;font-size:13px;color:var(--txt-l);
-  margin-bottom:24px;animation:pulse 2s ease-in-out infinite;
-}
-.gallery-shake-hint .phone-icon{
-  display:inline-block;animation:shakeHint 1.5s ease-in-out infinite;font-size:20px;
-}
-@keyframes shakeHint{
-  0%,100%{transform:rotate(0deg)}
-  15%{transform:rotate(12deg)}
-  30%{transform:rotate(-12deg)}
-  45%{transform:rotate(8deg)}
-  60%{transform:rotate(-8deg)}
-  75%{transform:rotate(3deg)}
-}
-.polaroid-container{
-  position:relative;width:100%;min-height:500px;
-}
-.polaroid{
-  position:absolute;
-  width:140px;
-  background:white;
-  padding:8px 8px 32px;
-  box-shadow:0 4px 20px rgba(0,0,0,0.12);
-  cursor:pointer;
-  transition:transform 0.6s cubic-bezier(0.34,1.56,0.64,1), opacity 0.6s ease, box-shadow 0.3s;
-  opacity:0;
-  transform:scale(0.3) rotate(var(--rot));
-}
-.polaroid.revealed{
-  opacity:1;
-  transform:scale(1) rotate(var(--rot));
-}
-.polaroid:hover{
-  box-shadow:0 8px 30px rgba(0,0,0,0.2);
-  transform:scale(1.05) rotate(0deg) !important;
-  z-index:100;
-}
-.polaroid img{width:100%;aspect-ratio:1;object-fit:cover;display:block}
-.polaroid .caption{
-  font-family:'Nanum Pen Script',cursive;font-size:13px;
-  color:var(--txt-m);text-align:center;margin-top:8px;
-}
-/* Gallery grid mode toggle */
-.gallery-mode-btn{
-  display:block;margin:20px auto 0;padding:8px 20px;
-  border:1px solid var(--div);background:white;border-radius:20px;
-  font-family:'Gowun Batang',serif;font-size:12px;color:var(--txt-l);
-  cursor:pointer;transition:all 0.3s;
-}
-.gallery-mode-btn:hover{border-color:var(--gold);color:var(--gold-dk)}
-.gallery-grid-view{
-  display:none;grid-template-columns:repeat(5,1fr);gap:3px;
-}
-.gallery-grid-view.active{display:grid}
-.gallery-grid-view .g-item{aspect-ratio:1;overflow:hidden;border-radius:2px;cursor:pointer}
-.gallery-grid-view .g-item img{width:100%;height:100%;object-fit:cover;transition:transform 0.4s}
-.gallery-grid-view .g-item:hover img{transform:scale(1.08)}
-
-/* ====== LIGHTBOX ====== */
-.lightbox{position:fixed;inset:0;z-index:2000;background:rgba(0,0,0,0.95);display:none;align-items:center;justify-content:center;flex-direction:column}
-.lightbox.active{display:flex}
-.lb-close{position:absolute;top:16px;right:16px;width:40px;height:40px;border:none;background:none;color:white;font-size:28px;cursor:pointer;z-index:10}
-.lb-img-wrap{width:100%;height:80vh;display:flex;align-items:center;justify-content:center;touch-action:pan-y}
-.lb-img{max-width:100%;max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none}
-.lb-nav{position:absolute;top:50%;transform:translateY(-50%);width:44px;height:44px;border:none;background:rgba(255,255,255,0.15);color:white;font-size:20px;cursor:pointer;border-radius:50%;backdrop-filter:blur(4px)}
-.lb-nav.prev{left:12px}.lb-nav.next{right:12px}
-.lb-counter{color:rgba(255,255,255,0.6);font-size:13px;margin-top:16px;letter-spacing:2px}
-
-/* ====== KAKAO CHAT STORY ====== */
-.story-section{
-  background:var(--kakao-bg);padding:0;overflow:hidden;
-  border-top:1px solid rgba(0,0,0,0.05);border-bottom:1px solid rgba(0,0,0,0.05);
-}
-.kakao-header{
-  background:rgba(0,0,0,0.08);padding:14px 20px;
-  display:flex;align-items:center;justify-content:space-between;
-  position:sticky;top:0;z-index:10;backdrop-filter:blur(10px);
-}
-.kakao-header .back{font-size:20px;color:rgba(0,0,0,0.5);background:none;border:none;cursor:pointer}
-.kakao-header .title{font-size:14px;font-weight:600;color:var(--txt)}
-.kakao-header .members{font-size:12px;color:rgba(0,0,0,0.4)}
-.kakao-chat{padding:16px 12px 30px;min-height:400px}
-.chat-date{
-  text-align:center;margin:16px 0;font-size:11px;
-  color:rgba(0,0,0,0.35);
-  background:rgba(0,0,0,0.06);display:inline-block;
-  padding:4px 12px;border-radius:10px;
-  margin-left:auto;margin-right:auto;
-  display:table;
-}
-.chat-row{display:flex;align-items:flex-start;gap:8px;margin-bottom:12px;opacity:0;transform:translateY(10px);transition:all 0.5s ease}
-.chat-row.visible{opacity:1;transform:translateY(0)}
-.chat-row.mine{flex-direction:row-reverse}
-.chat-avatar{
-  width:36px;height:36px;border-radius:12px;overflow:hidden;flex-shrink:0;
-  background:var(--peach-lt);display:flex;align-items:center;justify-content:center;font-size:18px;
-}
-.chat-avatar img{width:100%;height:100%;object-fit:cover}
-.chat-content{max-width:70%}
-.chat-name{font-size:11px;color:rgba(0,0,0,0.5);margin-bottom:3px;padding-left:4px}
-.chat-bubble{
-  padding:8px 12px;border-radius:12px;font-size:14px;line-height:1.7;
-  word-break:keep-all;position:relative;
-}
-.chat-row:not(.mine) .chat-bubble{
-  background:var(--kakao-other);color:var(--txt);
-  border-top-left-radius:2px;
-  box-shadow:0 1px 3px rgba(0,0,0,0.06);
-}
-.chat-row.mine .chat-bubble{
-  background:var(--kakao-my);color:var(--txt);
-  border-top-right-radius:2px;
-}
-.chat-time{font-size:10px;color:rgba(0,0,0,0.3);margin-top:2px;padding-left:4px}
-.chat-row.mine .chat-time{text-align:right;padding-right:4px}
-.chat-emoji{font-size:32px;line-height:1.2}
-.chat-q-label{
-  display:inline-block;padding:2px 8px;background:var(--rose-lt);
-  border-radius:8px;font-size:11px;color:var(--rose-dk);margin-bottom:6px;
-}
-
-/* ====== MAP ====== */
-.map-section{padding:60px 28px;text-align:center}
-.map-container{width:100%;height:240px;border-radius:12px;overflow:hidden;margin-bottom:16px;background:#e8e2da}
-.map-container iframe{width:100%;height:100%;border:0}
-.map-addr{font-size:14px;color:var(--txt-m);line-height:1.8;margin-bottom:16px}
-.map-btns{display:flex;gap:8px;justify-content:center;flex-wrap:wrap}
-.map-btn{
-  padding:10px 20px;border:1px solid var(--div);background:white;border-radius:4px;
-  font-family:'Gowun Batang',serif;font-size:13px;color:var(--txt-m);
-  cursor:pointer;text-decoration:none;transition:all 0.3s;
-}
-.map-btn:hover{border-color:var(--gold);color:var(--gold-dk)}
-
-/* ====== ACCOUNT ====== */
-.account-section{background:var(--bg-s);padding:60px 28px;text-align:center}
-.acc-group{margin-bottom:16px}
-.acc-toggle{
-  display:block;width:100%;max-width:280px;margin:0 auto;padding:14px 0;
-  border:1px solid var(--gold-lt);background:white;color:var(--gold-dk);
-  font-family:'Gowun Batang',serif;font-size:14px;cursor:pointer;
-  border-radius:4px;transition:all 0.3s;letter-spacing:1px;
-}
-.acc-toggle:hover{background:var(--gold);color:white}
-.acc-detail{max-height:0;overflow:hidden;transition:max-height 0.5s;max-width:300px;margin:0 auto}
-.acc-detail.open{max-height:300px}
-.acc-info{padding:16px;margin-top:12px;background:white;border-radius:8px}
-.acc-row{display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--div);font-size:13px}
-.acc-row:last-child{border-bottom:none}
-.acc-row .bank{color:var(--txt-l)}
-.acc-row .num{color:var(--txt);letter-spacing:0.5px}
-.copy-btn{
-  padding:4px 10px;border:1px solid var(--div);background:transparent;
-  border-radius:3px;font-size:11px;color:var(--txt-l);cursor:pointer;
-  font-family:inherit;transition:all 0.3s;
-}
-.copy-btn:hover{border-color:var(--gold);color:var(--gold-dk)}
-.copy-btn.copied{border-color:var(--sage);color:var(--sage)}
-
-/* ====== GUESTBOOK ====== */
-.gb-section{padding:60px 28px}
-.gb-form{max-width:340px;margin:0 auto 32px}
-.gb-row{display:flex;gap:8px;margin-bottom:8px}
-.gb-input{
-  flex:1;padding:12px 14px;border:1px solid var(--div);border-radius:4px;
-  font-family:inherit;font-size:14px;color:var(--txt);background:var(--warm);
-  outline:none;transition:border-color 0.3s;
-}
-.gb-input:focus{border-color:var(--gold-lt)}
-.gb-input::placeholder{color:var(--txt-l)}
-textarea.gb-input{width:100%;min-height:80px;resize:none;margin-bottom:8px}
-.gb-submit{
-  width:100%;padding:13px 0;border:none;background:var(--gold);color:white;
-  font-family:'Gowun Batang',serif;font-size:14px;cursor:pointer;
-  border-radius:4px;transition:background 0.3s;letter-spacing:1px;
-}
-.gb-submit:hover{background:var(--gold-dk)}
-.gb-list{max-width:340px;margin:0 auto}
-.gb-entry{padding:16px 0;border-bottom:1px solid var(--div)}
-.gb-entry:last-child{border-bottom:none}
-.gb-entry-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
-.gb-entry-nm{font-size:14px;font-weight:600;color:var(--txt)}
-.gb-entry-dt{font-size:11px;color:var(--txt-l)}
-.gb-entry-msg{font-size:14px;color:var(--txt-m);line-height:1.7}
-.gb-del{background:none;border:none;color:var(--txt-l);font-size:11px;cursor:pointer;margin-left:8px}
-.gb-del:hover{color:var(--rose)}
-
-/* ====== RSVP ====== */
-.rsvp-section{background:var(--bg-s);padding:60px 28px;text-align:center}
-.rsvp-btn{
-  display:inline-block;padding:16px 48px;border:2px solid var(--gold);
-  background:var(--gold);color:white;font-family:'Gowun Batang',serif;
-  font-size:15px;cursor:pointer;border-radius:4px;transition:all 0.3s;letter-spacing:2px;
-}
-.rsvp-btn:hover{background:transparent;color:var(--gold-dk)}
-.rsvp-modal{position:fixed;inset:0;z-index:3000;background:rgba(0,0,0,0.5);display:none;align-items:center;justify-content:center;padding:20px}
-.rsvp-modal.active{display:flex}
-.rsvp-card{background:white;border-radius:16px;padding:36px 28px;max-width:360px;width:100%;text-align:center;position:relative}
-.rsvp-card h3{font-family:'Gowun Batang',serif;font-size:20px;font-weight:400;margin-bottom:24px;color:var(--txt)}
-.rsvp-options{display:flex;gap:10px;margin:16px 0}
-.rsvp-opt{
-  flex:1;padding:12px;border:1px solid var(--div);border-radius:8px;
-  background:white;cursor:pointer;font-family:inherit;font-size:14px;
-  transition:all 0.3s;color:var(--txt-m);
-}
-.rsvp-opt.sel{border-color:var(--gold);background:rgba(201,169,110,0.08);color:var(--gold-dk)}
-.rsvp-close{position:absolute;top:12px;right:16px;background:none;border:none;font-size:24px;color:var(--txt-l);cursor:pointer}
-.rsvp-send{
-  width:100%;padding:14px;border:none;background:var(--gold);color:white;
-  font-family:'Gowun Batang',serif;font-size:15px;border-radius:8px;
-  cursor:pointer;transition:background 0.3s;margin-top:12px;
-}
-.rsvp-send:hover{background:var(--gold-dk)}
-
-/* ====== FOOTER ====== */
-footer{text-align:center;padding:40px 28px;font-size:12px;color:var(--txt-l);letter-spacing:1px}
-footer .couple{font-family:'Cormorant Garamond',serif;font-size:18px;color:var(--gold);margin-bottom:8px;letter-spacing:4px}
-
-/* ====== ANIMATIONS ====== */
-.fade-in{opacity:0;transform:translateY(30px);transition:opacity 0.8s ease,transform 0.8s ease}
-.fade-in.visible{opacity:1;transform:translateY(0)}
-
-/* ====== TOAST ====== */
-.toast{
-  position:fixed;bottom:30px;left:50%;transform:translateX(-50%) translateY(100px);
-  background:var(--txt);color:white;padding:12px 24px;border-radius:8px;
-  font-size:13px;z-index:9999;transition:transform 0.3s;white-space:nowrap;
-}
-.toast.show{transform:translateX(-50%) translateY(0)}
-
-/* ====== WATERCOLOR FLOWER DECORATIONS ====== */
-.wc-flower{
-  position:absolute;pointer-events:none;opacity:0.2;
-  font-size:60px;
-}
-</style>
-</head>
-<body>
-
-<!-- INTRO OVERLAY -->
-<div class="intro-overlay" id="introOverlay">
-  <div class="intro-watercolor-blob"></div>
-  <div class="intro-watercolor-blob"></div>
-  <div class="intro-watercolor-blob"></div>
-  <div class="intro-flower">🌸</div>
+// 트렌디한 폰트 (SSR 환경 에러 방지용 typeof 체크)
+if (typeof document !== 'undefined') {
+  const l = document.createElement("link");
+  l.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Serif+KR:wght@300;400;500&display=swap";
+  l.rel = "stylesheet";
+  document.head.appendChild(l);
   
-  <!-- HANDWRITING SVG ANIMATION -->
-  <svg class="handwriting-svg" viewBox="0 0 300 120">
-    <!-- 성민 path -->
-    <path class="stroke s1" style="--len:280" d="M30,35 C35,20 45,15 55,18 C65,21 60,40 50,45 C40,50 30,48 28,42 M60,25 L60,50 M65,35 L80,35 M80,20 L80,50 M85,30 C90,25 100,22 105,28 C110,34 100,45 90,48"/>
-    <!-- ♥ -->
-    <path class="stroke heart-stroke" style="--len:120" d="M140,45 C140,35 150,25 155,30 C160,25 170,35 170,45 C170,55 155,68 155,68 C155,68 140,55 140,45Z"/>
-    <!-- 수빈 path -->
-    <path class="stroke s2" style="--len:260" d="M190,20 C185,28 188,40 195,45 C202,50 212,42 210,32 C208,22 195,18 190,20 M218,25 L218,50 M222,35 L235,35 M235,18 L235,50 M240,30 C248,25 260,28 258,38 C256,48 242,50 240,45"/>
-  </svg>
-  
-  <div class="intro-date">2026. 06. 27</div>
-  <p class="intro-tap">화면을 터치해 주세요</p>
-</div>
+  const p = document.createElement("link");
+  p.href = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css";
+  p.rel = "stylesheet";
+  document.head.appendChild(p);
+}
 
-<!-- VINYL LP PLAYER -->
-<div class="vinyl-player" id="vinylPlayer" title="음악 재생/정지">
-  <div class="vinyl-disc" id="vinylDisc">
-    <div class="vinyl-label"><div class="vinyl-hole"></div></div>
-  </div>
-  <div class="vinyl-arm" id="vinylArm"></div>
-</div>
-<audio id="bgMusic" loop preload="auto">
-  <source src="https://cdn.pixabay.com/audio/2024/11/04/audio_a2b05a73b5.mp3" type="audio/mpeg">
-</audio>
+const S = {
+  section: { padding: "40px 24px", position: "relative" },
+  tight: { padding: "30px 24px", position: "relative" },
+  divider: { width: 40, height: 1, background: P.black, margin: "0 auto", opacity: 0.2 },
+  title: {
+    fontFamily: "'Playfair Display', serif",
+    fontSize: 14, fontWeight: 600, letterSpacing: ".25em",
+    color: P.black, textAlign: "center", marginBottom: 24,
+    textTransform: "uppercase",
+  },
+  btn: {
+    fontFamily: "'Pretendard', sans-serif", fontWeight: 500,
+    border: `1px solid ${P.black}`, background: P.white,
+    color: P.black, padding: "12px 32px", borderRadius: 30,
+    fontSize: 13, cursor: "pointer", transition: "all .3s",
+    letterSpacing: ".02em",
+  },
+};
 
-<!-- HERO -->
-<section class="hero">
-  <img class="hero-img" src="https://images.unsplash.com/photo-1519741497674-611481863552?w=800&q=80" alt="웨딩 메인 사진">
-  <div class="hero-overlay"></div>
-  <div class="hero-text fade-in">
-    <div class="en">Wedding Invitation</div>
-    <div class="names">성민 <span class="heart">♥</span> 수빈</div>
-    <div class="date">2026. 06. 27 SAT PM 1:00</div>
-  </div>
-</section>
+/* ═══════════════════════════════════════
+   HOOKS & UTILS
+   ═══════════════════════════════════════ */
+function useReveal(threshold = 0.15) {
+  const ref = useRef(null);
+  const [vis, setVis] = useState(false);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    const obs = new IntersectionObserver(([e]) => {
+      if (e.isIntersecting) { setVis(true); obs.disconnect(); }
+    }, { threshold });
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, []);
+  return [ref, vis];
+}
 
-<!-- INFO -->
-<section class="info-section fade-in">
-  <div style="text-align:center;color:var(--gold-lt);font-size:24px;margin-bottom:24px">✦</div>
-  <div class="info-date">06. 27</div>
-  <div class="info-dt">2026년 6월 27일 토요일 오후 1시</div>
-  <div class="info-venue">더 채플앳청담 그랜드홀</div>
-  <div class="info-venue-d">서울특별시 강남구 청담동 123-45</div>
-</section>
-
-<!-- INVITATION -->
-<section class="fade-in" style="padding-top:0">
-  <div class="divider"></div>
-  <p class="inv-text">
-    서로가 마주보며 다져온 사랑을<br>
-    이제 함께 한 곳을 바라보며<br>
-    걸어가고자 합니다.<br><br>
-    저희 두 사람이 사랑의 이름으로<br>
-    지켜나갈 수 있도록<br>
-    축복해 주시면 감사하겠습니다.
-  </p>
-  <div class="parents">
-    <div>
-      <span class="role">신랑 측</span><br>
-      <strong>김영수</strong> · <strong>이미경</strong>의 장남 <strong>성민</strong>
+function Reveal({ children, delay = 0, style = {} }) {
+  const [ref, vis] = useReveal();
+  return (
+    <div ref={ref} style={{
+      opacity: vis ? 1 : 0,
+      transform: vis ? "translateY(0)" : "translateY(30px)",
+      transition: `opacity .8s ease ${delay}ms, transform .8s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms`,
+      ...style,
+    }}>
+      {children}
     </div>
-    <div style="margin-top:12px">
-      <span class="role">신부 측</span><br>
-      <strong>박정호</strong> · <strong>최은주</strong>의 차녀 <strong>수빈</strong>
+  );
+}
+
+/* ═══════════════════════════════════════
+   COMPONENTS
+   ═══════════════════════════════════════ */
+function Splash({ onEnter }) {
+  const [leaving, setLeaving] = useState(false);
+  const go = () => { setLeaving(true); setTimeout(onEnter, 800); };
+
+  return (
+    <div onClick={go} style={{
+      position: "fixed", inset: 0, zIndex: 1000, background: P.bg,
+      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
+      cursor: "pointer", transition: "opacity .8s ease", opacity: leaving ? 0 : 1,
+    }}>
+      <div style={{
+        background: P.white, padding: "14px 14px 48px",
+        boxShadow: "0 10px 40px rgba(0,0,0,0.08)", width: "65%", maxWidth: 280,
+        position: "relative", transition: "transform .8s", transform: leaving ? "translateY(-30px)" : "translateY(0)",
+      }}>
+        <div style={{ width: "100%", aspectRatio: "3/4", background: `url(${img("childhood", 400, 530)}) center/cover`, filter: "grayscale(30%)" }} />
+        <div style={{
+          position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center",
+          fontFamily: "'Playfair Display', serif", fontSize: 11, color: P.black, letterSpacing: ".2em",
+        }}>OUR BEGINNING</div>
+      </div>
+      <p style={{
+        marginTop: 40, fontFamily: "'Pretendard', sans-serif", fontSize: 12, fontWeight: 300,
+        color: P.darkGray, letterSpacing: ".1em", animation: "cursorBlink 2s ease-in-out infinite",
+      }}>화면을 터치해 주세요</p>
     </div>
-  </div>
-</section>
+  );
+}
 
-<!-- CONTACT -->
-<section class="contact-section fade-in">
-  <button class="contact-btn" onclick="togglePanel('contactPanel')">연락하기 ✉</button>
-  <div class="panel" id="contactPanel">
-    <div class="contact-list">
-      <div class="contact-item"><div class="c-name">신랑 성민 <span>🤵</span></div><a href="tel:010-1234-5678" class="c-call">📞 전화</a></div>
-      <div class="contact-item"><div class="c-name">신랑 아버지 <span>김영수</span></div><a href="tel:010-1111-2222" class="c-call">📞 전화</a></div>
-      <div class="contact-item"><div class="c-name">신랑 어머니 <span>이미경</span></div><a href="tel:010-3333-4444" class="c-call">📞 전화</a></div>
-      <div class="contact-item"><div class="c-name">신부 수빈 <span>👰</span></div><a href="tel:010-5678-1234" class="c-call">📞 전화</a></div>
-      <div class="contact-item"><div class="c-name">신부 아버지 <span>박정호</span></div><a href="tel:010-5555-6666" class="c-call">📞 전화</a></div>
-      <div class="contact-item"><div class="c-name">신부 어머니 <span>최은주</span></div><a href="tel:010-7777-8888" class="c-call">📞 전화</a></div>
-    </div>
-  </div>
-</section>
-
-<!-- CALENDAR -->
-<section class="cal-section fade-in">
-  <div class="s-title">Calendar</div>
-  <div class="s-heading">2026년 6월</div>
-  <div class="cal" id="calendar"></div>
-  <div class="dday-box">
-    <span class="dday-heart">♥</span>
-    <span class="dday-text" id="ddayText"></span>
-  </div>
-</section>
-
-<!-- POLAROID GALLERY -->
-<section class="gallery-section fade-in" id="gallerySection">
-  <div class="s-title">Gallery</div>
-  <div class="s-heading">우리의 순간들</div>
-  <div class="gallery-shake-hint">
-    <span class="phone-icon">📱</span> 폰을 흔들어 사진을 꺼내보세요!
-  </div>
-  <div class="polaroid-container" id="polaroidContainer"></div>
-  <button class="gallery-mode-btn" id="galleryModeBtn" onclick="toggleGalleryMode()">📐 격자로 보기</button>
-  <div class="gallery-grid-view" id="galleryGridView"></div>
-</section>
-
-<!-- LIGHTBOX -->
-<div class="lightbox" id="lightbox">
-  <button class="lb-close" onclick="closeLightbox()">✕</button>
-  <button class="lb-nav prev" onclick="navLb(-1)">‹</button>
-  <button class="lb-nav next" onclick="navLb(1)">›</button>
-  <div class="lb-img-wrap" id="lbWrap"><img class="lb-img" id="lbImg" src="" alt=""></div>
-  <div class="lb-counter" id="lbCounter"></div>
-</div>
-
-<!-- KAKAO CHAT STORY -->
-<section class="story-section" id="storySection">
-  <div class="kakao-header">
-    <button class="back">‹</button>
-    <div>
-      <div class="title">우리 이야기 💕</div>
-    </div>
-    <div class="members">♡ 2</div>
-  </div>
-  <div class="kakao-chat" id="kakaoChat"></div>
-</section>
-
-<!-- MAP -->
-<section class="map-section fade-in">
-  <div class="s-title">Location</div>
-  <div class="s-heading">오시는 길</div>
-  <div class="divider"></div>
-  <div class="map-container">
-    <iframe src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d3164.1!2d127.045!3d37.524!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x0%3A0x0!2z!5e0!3m2!1sko!2skr!4v1" allowfullscreen loading="lazy"></iframe>
-  </div>
-  <div class="map-addr">
-    <strong>더 채플앳청담 그랜드홀</strong><br>
-    서울특별시 강남구 청담동 123-45<br>
-    <span style="font-size:13px;color:var(--txt-l)">지하 2층 무료 주차 가능</span>
-  </div>
-  <div class="map-btns">
-    <a class="map-btn" href="https://map.naver.com" target="_blank">네이버 지도</a>
-    <a class="map-btn" href="https://map.kakao.com" target="_blank">카카오 지도</a>
-    <a class="map-btn" href="https://maps.google.com" target="_blank">구글 지도</a>
-  </div>
-</section>
-
-<!-- ACCOUNT -->
-<section class="account-section fade-in">
-  <div class="s-title">Gift</div>
-  <div class="s-heading">마음 전하실 곳</div>
-  <div class="divider"></div>
-  <div class="acc-group">
-    <button class="acc-toggle" onclick="togglePanel('accGroom')">🤵 신랑 측 계좌번호</button>
-    <div class="acc-detail" id="accGroom">
-      <div class="acc-info">
-        <div class="acc-row"><span class="bank">신한은행</span><span class="num">110-123-456789</span><button class="copy-btn" onclick="copyAcc(this,'110123456789')">복사</button></div>
-        <div class="acc-row"><span style="font-size:12px;color:var(--txt-l)">예금주: 김성민</span></div>
-        <div class="acc-row" style="margin-top:8px;padding-top:12px"><span class="bank">국민은행</span><span class="num">123-45-6789-012</span><button class="copy-btn" onclick="copyAcc(this,'123456789012')">복사</button></div>
-        <div class="acc-row"><span style="font-size:12px;color:var(--txt-l)">예금주: 김영수 (아버지)</span></div>
+function Hero() {
+  return (
+    <div style={{ padding: "40px 24px 20px" }}>
+      <div style={{
+        background: P.white, padding: "16px 16px 50px", boxShadow: "0 8px 24px rgba(0,0,0,0.04)", position: "relative"
+      }}>
+        <img src={img("wedding-main", 600, 800)} alt="웨딩" style={{ width: "100%", display: "block", aspectRatio: "3/4", objectFit: "cover", filter: "contrast(1.05)" }} />
+        <div style={{ position: "absolute", bottom: 18, left: 16, right: 16, display: "flex", justifyContent: "space-between", fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".1em", color: P.black }}>
+          <span>M & S</span>
+          <span>2025. 06. 27</span>
+        </div>
       </div>
     </div>
-  </div>
-  <div class="acc-group" style="margin-top:12px">
-    <button class="acc-toggle" onclick="togglePanel('accBride')">👰 신부 측 계좌번호</button>
-    <div class="acc-detail" id="accBride">
-      <div class="acc-info">
-        <div class="acc-row"><span class="bank">카카오뱅크</span><span class="num">3333-12-3456789</span><button class="copy-btn" onclick="copyAcc(this,'3333123456789')">복사</button></div>
-        <div class="acc-row"><span style="font-size:12px;color:var(--txt-l)">예금주: 박수빈</span></div>
-        <div class="acc-row" style="margin-top:8px;padding-top:12px"><span class="bank">우리은행</span><span class="num">1002-567-891234</span><button class="copy-btn" onclick="copyAcc(this,'1002567891234')">복사</button></div>
-        <div class="acc-row"><span style="font-size:12px;color:var(--txt-l)">예금주: 박정호 (아버지)</span></div>
+  );
+}
+
+function Info() {
+  return (
+    <Reveal>
+      <div style={{ ...S.section, textAlign: "center" }}>
+        <h2 style={{ fontFamily: "'Noto Serif KR', serif", fontSize: 24, fontWeight: 400, margin: "0 0 16px", color: P.black }}>
+          김민준 <span style={{ fontSize: 16, fontFamily: "'Playfair Display', serif", fontStyle: "italic", margin: "0 10px", color: P.gray }}>and</span> 이서연
+        </h2>
+        <div style={S.divider} />
+        <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 14, color: P.black, marginTop: 16, fontWeight: 400, lineHeight: 1.6 }}>
+          2025년 6월 27일 금요일 낮 12시<br />
+          <span style={{ fontSize: 13, color: P.darkGray, marginTop: 4, display: "inline-block" }}>그랜드 하얏트 서울 그랜드볼룸</span>
+        </p>
       </div>
+    </Reveal>
+  );
+}
+
+function Parents() {
+  return (
+    <Reveal>
+      <div style={{ ...S.tight, textAlign: "center", paddingTop: 0, paddingBottom: 30 }}>
+        <div style={{ fontSize: 13, lineHeight: 2.2, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>
+          <p style={{ margin: 0 }}>
+            <span style={{ color: P.gray, marginRight: 8 }}>신랑측</span> 김OO · 박OO
+            <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 아들 </span><b>민준</b>
+          </p>
+          <p style={{ margin: 0 }}>
+            <span style={{ color: P.gray, marginRight: 8 }}>신부측</span> 이OO · 최OO
+            <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 딸 </span><b>서연</b>
+          </p>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Contact() {
+  const [open, setOpen] = useState(null);
+  const contacts = {
+    groom: [
+      { label: "신랑", name: "김민준", tel: "010-1234-5678" },
+      { label: "신랑 아버지", name: "김OO", tel: "010-1111-2222" },
+      { label: "신랑 어머니", name: "박OO", tel: "010-3333-4444" },
+    ],
+    bride: [
+      { label: "신부", name: "이서연", tel: "010-5678-1234" },
+      { label: "신부 아버지", name: "이OO", tel: "010-5555-6666" },
+      { label: "신부 어머니", name: "최OO", tel: "010-7777-8888" },
+    ],
+  };
+
+  return (
+    <Reveal>
+      <div style={{ ...S.tight, textAlign: "center" }}>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          {["groom", "bride"].map(side => (
+            <button key={side} onClick={() => setOpen(open === side ? null : side)}
+              style={{ ...S.btn, background: open === side ? P.black : P.white, color: open === side ? P.white : P.black, minWidth: 120 }}>
+              {side === "groom" ? "신랑측" : "신부측"} 연락하기
+            </button>
+          ))}
+        </div>
+        <div style={{ maxHeight: open ? 300 : 0, overflow: "hidden", transition: "max-height .4s ease, opacity .3s ease", opacity: open ? 1 : 0 }}>
+          {open && (
+            <div style={{ marginTop: 16, background: P.white, borderRadius: 8, padding: "14px 16px", border: `1px solid ${P.border}` }}>
+              {contacts[open]?.map((c, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", fontSize: 13, borderBottom: i < contacts[open].length - 1 ? `1px solid ${P.lightGray}` : "none" }}>
+                  <span><span style={{ color: P.gray, marginRight: 8 }}>{c.label}</span>{c.name}</span>
+                  <a href={`tel:${c.tel}`} style={{ color: P.black, textDecoration: "none", fontSize: 11, padding: "4px 14px", border: `1px solid ${P.black}`, borderRadius: 20 }}>전화</a>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Calendar() {
+  const wd = WEDDING_DATE;
+  const diff = Math.max(0, Math.ceil((wd - new Date()) / 864e5));
+  const y = wd.getFullYear(), m = wd.getMonth();
+  const first = new Date(y, m, 1).getDay();
+  const total = new Date(y, m + 1, 0).getDate();
+  const days = [...Array(first).fill(null), ...Array.from({ length: total }, (_, i) => i + 1)];
+  const dn = ["S", "M", "T", "W", "T", "F", "S"];
+
+  return (
+    <Reveal>
+      <div style={{ ...S.tight, background: P.white, marginTop: 20 }}>
+        <p style={S.title}>Calendar</p>
+        <div style={{ maxWidth: 300, margin: "0 auto" }}>
+          <p style={{ textAlign: "center", fontSize: 14, fontWeight: 600, margin: "0 0 20px", color: P.black, fontFamily: "'Playfair Display', serif" }}>
+            {y}. {String(m + 1).padStart(2, '0')}
+          </p>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", textAlign: "center", gap: "8px 0" }}>
+            {dn.map((d, i) => (
+              <div key={i} style={{ fontSize: 10, color: P.gray, fontFamily: "'Playfair Display', serif" }}>{d}</div>
+            ))}
+            {days.map((d, i) => {
+              const isW = d === wd.getDate();
+              return (
+                <div key={i} style={{ padding: "8px 0", position: "relative", color: !d ? "transparent" : (isW ? P.white : P.black), fontSize: 12, fontFamily: "'Pretendard', sans-serif", fontWeight: isW ? 600 : 400 }}>
+                  {isW && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 26, height: 26, borderRadius: "50%", background: P.black, zIndex: 0 }} />}
+                  <span style={{ position: "relative", zIndex: 1 }}>{d}</span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+        <div style={{ textAlign: "center", marginTop: 30 }}>
+          <p style={{ fontSize: 13, color: P.darkGray, fontFamily: "'Pretendard', sans-serif" }}>
+            결혼식까지 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: P.black, margin: "0 6px" }}>{diff}</span> 일
+          </p>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Gallery() {
+  const strips = [];
+  for (let i = 0; i < GALLERY_IMAGES.length; i += 4) {
+    strips.push(GALLERY_IMAGES.slice(i, i + 4));
+  }
+
+  return (
+    <Reveal delay={100}>
+      <div style={{ ...S.tight, paddingLeft: 0, paddingRight: 0, overflow: "hidden" }}>
+        <p style={S.title}>Life Four Cuts</p>
+        <div style={{ display: "flex", overflowX: "auto", gap: 16, padding: "0 24px 30px", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
+          {strips.map((strip, si) => (
+            <div key={si} style={{ flex: "0 0 220px", scrollSnapAlign: "center", background: P.white, padding: "12px 12px 40px 12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
+              {strip.map((src, pi) => (
+                <div key={pi} style={{ width: "100%", aspectRatio: "3/2", backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center", filter: "contrast(1.1) grayscale(10%)" }} />
+              ))}
+              <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                <div style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 8, color: P.black, letterSpacing: ".1em", lineHeight: 1.2 }}>M & S WEDDING<br /><span style={{ color: P.gray }}>VOL. {si + 1}</span></div>
+                <div style={{ display: "flex", gap: 2, height: 12, alignItems: "flex-end", opacity: 0.5 }}>
+                  <div style={{ width: 2, height: "100%", background: P.black }}/><div style={{ width: 1, height: "80%", background: P.black }}/><div style={{ width: 3, height: "100%", background: P.black }}/><div style={{ width: 1, height: "60%", background: P.black }}/><div style={{ width: 2, height: "100%", background: P.black }}/>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+        <p style={{ textAlign: "center", fontSize: 11, fontFamily: "'Pretendard', sans-serif", color: P.gray, marginTop: "-10px" }}>← 옆으로 넘겨보세요 →</p>
+      </div>
+    </Reveal>
+  );
+}
+
+function OurStory() {
+  const qna = [
+    { q: "첫 만남은 어땠나요?", a: "친구 모임에서 처음 만났는데, 웃는 모습이 너무 예뻐서 눈을 뗄 수 없었어요. (민준)" },
+    { q: "결혼을 결심한 계기는?", a: "함께 있을 때 가장 나다운 모습이 된다는 걸 알았을 때, 이 사람이라고 확신했어요. (서연)" },
+  ];
+
+  return (
+    <Reveal>
+      <div style={{ ...S.tight, background: P.white }}>
+        <p style={S.title}>Interview</p>
+        <div style={{ display: "flex", flexDirection: "column", gap: 24, padding: "0 10px" }}>
+          {qna.map((item, i) => (
+            <div key={i} style={{ borderLeft: `2px solid ${P.black}`, paddingLeft: 16 }}>
+              <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, fontWeight: 600, color: P.black, margin: "0 0 8px" }}>Q. {item.q}</p>
+              <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, color: P.darkGray, lineHeight: 1.6, margin: 0, fontWeight: 300 }}>A. {item.a}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Location() {
+  return (
+    <Reveal>
+      <div style={{ ...S.tight }}>
+        <p style={S.title}>Location</p>
+        <div style={{ textAlign: "center", fontFamily: "'Pretendard', sans-serif" }}>
+          <p style={{ fontSize: 15, fontWeight: 600, margin: "0 0 4px", color: P.black }}>그랜드 하얏트 서울</p>
+          <p style={{ fontSize: 12, color: P.darkGray, margin: "0 0 2px" }}>그랜드볼룸 1층</p>
+          <p style={{ fontSize: 12, color: P.gray, margin: "0 0 20px" }}>서울특별시 용산구 소월로 322</p>
+          
+          <div style={{ width: "100%", height: 180, background: P.lightGray, marginBottom: 16, border: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: P.gray, fontSize: 12 }}>
+            지도 영역 (API 연동)
+          </div>
+          <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+            {["네이버 지도", "카카오맵", "길 찾기"].map(t => (
+              <button key={t} style={{ ...S.btn, fontSize: 11, padding: "8px 18px", borderRadius: 4 }}>{t}</button>
+            ))}
+          </div>
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Account() {
+  const [open, setOpen] = useState(null);
+  const accounts = {
+    groom: [{ bank: "국민은행", num: "123-456-789012", name: "김민준" }],
+    bride: [{ bank: "카카오뱅크", num: "3333-01-2345678", name: "이서연" }],
+  };
+  const copy = t => { navigator.clipboard.writeText(t).then(() => alert("복사되었습니다.")); };
+
+  return (
+    <Reveal>
+      <div style={{ ...S.tight, background: P.white }}>
+        <p style={S.title}>Account</p>
+        <p style={{ textAlign: "center", fontSize: 12, color: P.gray, margin: "0 0 20px", fontFamily: "'Pretendard', sans-serif" }}>축하의 마음을 전해 주세요</p>
+        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+          {["groom", "bride"].map(side => (
+            <button key={side} onClick={() => setOpen(open === side ? null : side)}
+              style={{ ...S.btn, background: open === side ? P.black : P.bg, color: open === side ? P.white : P.black, border: "none", minWidth: 120 }}>
+              {side === "groom" ? "신랑측" : "신부측"} 계좌
+            </button>
+          ))}
+        </div>
+        <div style={{ maxHeight: open ? 200 : 0, overflow: "hidden", transition: "all .3s ease", opacity: open ? 1 : 0 }}>
+          {open && (
+            <div style={{ marginTop: 16, background: P.bg, borderRadius: 8, padding: "12px 16px" }}>
+              {accounts[open]?.map((a, i) => (
+                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "'Pretendard', sans-serif" }}>
+                  <div>
+                    <span style={{ color: P.darkGray, marginRight: 8 }}>{a.bank}</span><span style={{ color: P.black }}>{a.num}</span>
+                    <div style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>{a.name}</div>
+                  </div>
+                  <button onClick={() => copy(a.num)} style={{ ...S.btn, fontSize: 11, padding: "6px 14px", borderRadius: 4 }}>복사</button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function Guestbook() {
+  const [entries, setEntries] = useState([]);
+  const [name, setName] = useState("");
+  const [msg, setMsg] = useState("");
+
+  // window.storage 대신 에러가 없는 localStorage 사용
+  useEffect(() => {
+    try {
+      const saved = localStorage.getItem("guestbook");
+      if (saved) setEntries(JSON.parse(saved));
+    } catch (e) {}
+  }, []);
+
+  const submit = () => {
+    if (!name.trim() || !msg.trim()) return;
+    const newEntries = [{ id: Date.now(), name, msg, date: new Date().toLocaleDateString() }, ...entries];
+    setEntries(newEntries);
+    try { localStorage.setItem("guestbook", JSON.stringify(newEntries)); } catch (e) {}
+    setName(""); setMsg("");
+  };
+
+  const inputStyle = { border: "none", borderBottom: `1px solid ${P.gray}`, borderRadius: 0, padding: "8px 4px", fontSize: 13, fontFamily: "'Pretendard', sans-serif", outline: "none", background: "transparent", width: "100%", boxSizing: "border-box", color: P.black };
+
+  return (
+    <Reveal>
+      <div style={{ ...S.tight }}>
+        <p style={S.title}>Guest Book</p>
+        <div style={{ background: P.white, padding: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.03)", marginBottom: 20 }}>
+          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
+            <input value={name} onChange={e => setName(e.target.value)} placeholder="이름" style={inputStyle} />
+          </div>
+          <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="축하 메시지를 남겨주세요." rows={2} style={{ ...inputStyle, resize: "none", borderBottom: "none", background: P.bg, padding: "12px", borderRadius: 4 }} />
+          <button onClick={submit} style={{ ...S.btn, width: "100%", marginTop: 16, background: P.black, color: P.white }}>등록하기</button>
+        </div>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+          {entries.map(e => (
+            <div key={e.id} style={{ background: P.white, padding: "16px", borderRadius: 8, border: `1px solid ${P.border}` }}>
+              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontFamily: "'Pretendard', sans-serif" }}>
+                <span style={{ fontSize: 13, fontWeight: 600, color: P.black }}>{e.name}</span>
+                <span style={{ fontSize: 11, color: P.gray }}>{e.date}</span>
+              </div>
+              <p style={{ fontSize: 13, margin: 0, color: P.darkGray, lineHeight: 1.5, fontFamily: "'Pretendard', sans-serif" }}>{e.msg}</p>
+            </div>
+          ))}
+        </div>
+      </div>
+    </Reveal>
+  );
+}
+
+function RSVP() {
+  const [rn, setRn] = useState("");
+  const [att, setAtt] = useState("");
+  const [sent, setSent] = useState(false);
+
+  const submit = () => {
+    if (!rn.trim() || !att) return alert("항목을 입력해주세요.");
+    setSent(true);
+  };
+
+  if (sent) return (
+    <div style={{ ...S.tight, background: P.white, textAlign: "center" }}>
+      <p style={S.title}>RSVP</p>
+      <p style={{ fontSize: 14, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>참석 여부가 전달되었습니다.<br />감사합니다.</p>
     </div>
-  </div>
-</section>
+  );
 
-<!-- GUESTBOOK -->
-<section class="gb-section fade-in">
-  <div class="s-title">Guestbook</div>
-  <div class="s-heading">축하 메시지</div>
-  <div class="divider"></div>
-  <div class="gb-form">
-    <div class="gb-row">
-      <input type="text" class="gb-input" id="gbName" placeholder="이름" maxlength="20">
-      <input type="password" class="gb-input" id="gbPw" placeholder="비밀번호" maxlength="10" style="max-width:120px">
-    </div>
-    <textarea class="gb-input" id="gbMsg" placeholder="축하 메시지를 남겨주세요 💌" maxlength="300"></textarea>
-    <button class="gb-submit" onclick="submitGb()">등록하기</button>
-  </div>
-  <div class="gb-list" id="gbList"></div>
-</section>
-
-<!-- RSVP -->
-<section class="rsvp-section fade-in">
-  <div class="s-title">RSVP</div>
-  <div class="s-heading">참석 여부 전달</div>
-  <div class="divider"></div>
-  <p style="font-size:14px;color:var(--txt-m);margin-bottom:24px;line-height:1.8">
-    축하의 마음으로 참석해 주시는 분들을<br>정성껏 모실 수 있도록 알려주세요.
-  </p>
-  <button class="rsvp-btn" onclick="openRsvp()">참석 여부 전달하기</button>
-</section>
-
-<!-- RSVP MODAL -->
-<div class="rsvp-modal" id="rsvpModal">
-  <div class="rsvp-card">
-    <button class="rsvp-close" onclick="closeRsvp()">✕</button>
-    <h3>참석 여부 전달</h3>
-    <input type="text" class="gb-input" id="rsvpName" placeholder="이름" style="width:100%;margin-bottom:10px">
-    <input type="tel" class="gb-input" id="rsvpPhone" placeholder="연락처" style="width:100%;margin-bottom:10px">
-    <div class="rsvp-options">
-      <button class="rsvp-opt" onclick="selRsvp(this,'attend')">참석합니다 🎉</button>
-      <button class="rsvp-opt" onclick="selRsvp(this,'absent')">불참합니다 💌</button>
-    </div>
-    <div id="rsvpMealWrap" style="display:none">
-      <p style="font-size:13px;color:var(--txt-l);margin-bottom:8px">동행 인원 (본인 포함)</p>
-      <input type="number" class="gb-input" id="rsvpGuests" placeholder="인원수" min="1" max="10" value="1" style="width:100%;margin-bottom:10px">
-    </div>
-    <button class="rsvp-send" onclick="sendRsvp()">전달하기</button>
-  </div>
-</div>
-
-<!-- FOOTER -->
-<footer>
-  <div class="couple">Sungmin & Subin</div>
-  <p>2026. 06. 27</p>
-</footer>
-
-<div class="toast" id="toast"></div>
-
-<script>
-// ===== UTIL =====
-function escHtml(s){const d=document.createElement('div');d.textContent=s;return d.innerHTML}
-function showToast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),2500)}
-function togglePanel(id){document.getElementById(id).classList.toggle('open')}
-
-// ===== FLOATING PETALS =====
-const petalEmojis = ['🌸','🌷','🌺','💮','🏵️','✿','❀'];
-let petalInterval;
-function startPetals(){
-  petalInterval = setInterval(()=>{
-    const p = document.createElement('div');
-    p.className = 'petal';
-    p.textContent = petalEmojis[Math.floor(Math.random()*petalEmojis.length)];
-    p.style.left = Math.random()*100 + '%';
-    p.style.fontSize = (12 + Math.random()*14) + 'px';
-    p.style.animationDuration = (5 + Math.random()*6) + 's';
-    document.body.appendChild(p);
-    setTimeout(()=>p.remove(), 12000);
-  }, 800);
+  return (
+    <Reveal>
+      <div style={{ ...S.tight, background: P.white }}>
+        <p style={S.title}>RSVP</p>
+        <div style={{ maxWidth: 320, margin: "0 auto", fontFamily: "'Pretendard', sans-serif" }}>
+          <input value={rn} onChange={e => setRn(e.target.value)} placeholder="성함" style={{ width: "100%", border: `1px solid ${P.border}`, padding: "12px", fontSize: 13, boxSizing: "border-box", marginBottom: 12, outline: "none" }} />
+          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+            {["참석", "미정", "불참"].map(o => (
+              <button key={o} onClick={() => setAtt(o)} style={{ flex: 1, padding: "10px 0", background: att === o ? P.black : P.bg, color: att === o ? P.white : P.darkGray, border: "none", fontSize: 13, cursor: "pointer" }}>{o}</button>
+            ))}
+          </div>
+          <button onClick={submit} style={{ ...S.btn, width: "100%", background: P.black, color: P.white, borderRadius: 4 }}>전달하기</button>
+        </div>
+      </div>
+    </Reveal>
+  );
 }
 
-// ===== INTRO =====
-const introOverlay = document.getElementById('introOverlay');
-introOverlay.addEventListener('click', ()=>{
-  introOverlay.classList.add('hidden');
-  playMusic();
-  startPetals();
-});
-
-// ===== VINYL LP PLAYER =====
-const bgMusic = document.getElementById('bgMusic');
-const vinylPlayer = document.getElementById('vinylPlayer');
-const vinylDisc = document.getElementById('vinylDisc');
-const vinylArm = document.getElementById('vinylArm');
-let musicPlaying = false;
-
-vinylPlayer.addEventListener('click', ()=>{
-  if(musicPlaying) pauseMusic(); else playMusic();
-});
-
-function playMusic(){
-  bgMusic.play().then(()=>{
-    musicPlaying = true;
-    vinylDisc.classList.add('spinning');
-    vinylArm.classList.add('playing');
-  }).catch(()=>{});
-}
-function pauseMusic(){
-  bgMusic.pause();
-  musicPlaying = false;
-  vinylDisc.classList.remove('spinning');
-  vinylArm.classList.remove('playing');
+function FloatingMusic({ playing, toggle }) {
+  return (
+    <button onClick={toggle} style={{
+      position: "fixed", top: 16, right: 16, zIndex: 900, width: 36, height: 36, borderRadius: "50%",
+      border: `1px solid ${P.border}`, background: "rgba(255,255,255,0.9)",
+      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
+      color: P.black, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", animation: playing ? "spin 4s linear infinite" : "none"
+    }}>♫</button>
+  );
 }
 
-// ===== CALENDAR =====
-(function renderCal(){
-  const cal=document.getElementById('calendar');
-  const y=2026,m=6,wd=27;
-  const today=new Date();
-  const td=(today.getFullYear()===y&&today.getMonth()+1===m)?today.getDate():-1;
-  const fd=new Date(y,m-1,1).getDay();
-  const dim=new Date(y,m,0).getDate();
-  const dn=['일','월','화','수','목','금','토'];
-  let h='<div class="cal-head">JUNE 2026</div><div class="cal-grid">';
-  dn.forEach(d=>{h+=`<div class="cal-dn">${d}</div>`});
-  for(let i=0;i<fd;i++)h+='<div class="cal-d empty"></div>';
-  for(let d=1;d<=dim;d++){
-    const dow=(fd+d-1)%7;
-    let c='cal-d';
-    if(dow===0)c+=' sun';if(dow===6)c+=' sat';
-    if(d===td)c+=' today';if(d===wd)c+=' wedding';
-    h+=`<div class="${c}">${d}</div>`;
-  }
-  h+='</div>';cal.innerHTML=h;
-})();
+/* ═══════════════════════════════════════
+   MAIN APP
+   ═══════════════════════════════════════ */
+export default function WeddingInvitation() {
+  const [entered, setEntered] = useState(false);
+  const [fadeIn, setFadeIn] = useState(false);
+  const [playing, setPlaying] = useState(false);
+  const audioRef = useRef(null);
 
-(function updateDday(){
-  const w=new Date(2026,5,27);const t=new Date();t.setHours(0,0,0,0);
-  const d=Math.ceil((w-t)/(864e5));
-  const el=document.getElementById('ddayText');
-  if(d>0)el.innerHTML=`결혼식까지 <strong>D-${d}</strong>`;
-  else if(d===0)el.innerHTML=`오늘 결혼합니다! <strong>D-Day</strong>`;
-  else el.innerHTML=`결혼한 지 <strong>${Math.abs(d)}일</strong>`;
-})();
+  const enter = () => {
+    setEntered(true);
+    setPlaying(true);
+    setTimeout(() => setFadeIn(true), 50);
+  };
 
-// ===== GALLERY DATA =====
-const imgs=[];
-for(let i=1;i<=30;i++) imgs.push(`https://picsum.photos/400/400?random=${i}&t=${Date.now()}`);
-
-// ===== POLAROID GALLERY =====
-let revealedCount = 0;
-const polaroids = [];
-
-function initPolaroids(){
-  const container = document.getElementById('polaroidContainer');
-  const cw = container.offsetWidth || 400;
-  // place 30 polaroids in a flow
-  const cols = 3;
-  const pw = 130; // polaroid width
-  const ph = 180; // approx height
-  const gapX = (cw - cols * pw) / (cols + 1);
-  
-  imgs.forEach((src, i)=>{
-    const col = i % cols;
-    const row = Math.floor(i / cols);
-    const x = gapX + col * (pw + gapX) + (Math.random()-0.5)*15;
-    const y = row * (ph + 10) + (Math.random()-0.5)*10;
-    const rot = (Math.random()-0.5)*16;
-    
-    const div = document.createElement('div');
-    div.className = 'polaroid';
-    div.style.cssText = `left:${x}px;top:${y}px;--rot:${rot}deg;`;
-    div.innerHTML = `<img src="${src}" alt="사진 ${i+1}" loading="lazy"><div class="caption">#${i+1}</div>`;
-    div.addEventListener('click', ()=> openLightbox(i));
-    container.appendChild(div);
-    polaroids.push(div);
-  });
-  
-  // Set container height
-  const rows = Math.ceil(imgs.length / cols);
-  container.style.minHeight = (rows * (ph + 10) + 40) + 'px';
-  
-  // Reveal first 6 immediately with stagger
-  for(let i=0;i<6;i++){
-    setTimeout(()=> revealPolaroid(i), 200 + i*150);
-  }
-  revealedCount = 6;
-}
-
-function revealPolaroid(idx){
-  if(idx < polaroids.length && !polaroids[idx].classList.contains('revealed')){
-    polaroids[idx].classList.add('revealed');
-  }
-}
-
-function revealBatch(count){
-  const start = revealedCount;
-  const end = Math.min(start + count, polaroids.length);
-  for(let i=start;i<end;i++){
-    setTimeout(()=> revealPolaroid(i), (i-start)*100);
-  }
-  revealedCount = end;
-}
-
-// Shake detection
-let lastX=0,lastY=0,lastZ=0,lastShake=0;
-window.addEventListener('devicemotion', e=>{
-  const a = e.accelerationIncludingGravity;
-  if(!a) return;
-  const dx=Math.abs(a.x-lastX), dy=Math.abs(a.y-lastY), dz=Math.abs(a.z-lastZ);
-  if(dx+dy+dz > 30 && Date.now()-lastShake>600){
-    lastShake = Date.now();
-    revealBatch(3);
-    // Add haptic feedback if available
-    if(navigator.vibrate) navigator.vibrate(50);
-  }
-  lastX=a.x;lastY=a.y;lastZ=a.z;
-});
-
-// Desktop fallback: click to reveal more
-document.getElementById('gallerySection').addEventListener('click', e=>{
-  if(e.target.closest('.polaroid') || e.target.closest('.gallery-mode-btn')) return;
-  if(revealedCount < polaroids.length) revealBatch(3);
-});
-
-// Grid mode toggle
-let gridMode = false;
-function toggleGalleryMode(){
-  const btn = document.getElementById('galleryModeBtn');
-  const container = document.getElementById('polaroidContainer');
-  const gridView = document.getElementById('galleryGridView');
-  
-  gridMode = !gridMode;
-  if(gridMode){
-    container.style.display = 'none';
-    document.querySelector('.gallery-shake-hint').style.display = 'none';
-    gridView.classList.add('active');
-    btn.textContent = '📸 폴라로이드로 보기';
-  } else {
-    container.style.display = 'block';
-    document.querySelector('.gallery-shake-hint').style.display = 'block';
-    gridView.classList.remove('active');
-    btn.textContent = '📐 격자로 보기';
-  }
-}
-
-function renderGridGallery(){
-  const grid = document.getElementById('galleryGridView');
-  grid.innerHTML = imgs.map((src,i)=>
-    `<div class="g-item" onclick="openLightbox(${i})"><img src="${src}" alt="사진 ${i+1}" loading="lazy"></div>`
-  ).join('');
-}
-
-// ===== LIGHTBOX =====
-let curLb=0,touchSX=0;
-function openLightbox(i){curLb=i;document.getElementById('lightbox').classList.add('active');updateLb();document.body.style.overflow='hidden'}
-function closeLightbox(){document.getElementById('lightbox').classList.remove('active');document.body.style.overflow=''}
-function navLb(d){curLb=(curLb+d+imgs.length)%imgs.length;updateLb()}
-function updateLb(){document.getElementById('lbImg').src=imgs[curLb];document.getElementById('lbCounter').textContent=`${curLb+1} / ${imgs.length}`}
-document.getElementById('lbWrap').addEventListener('touchstart',e=>{touchSX=e.touches[0].clientX});
-document.getElementById('lbWrap').addEventListener('touchend',e=>{const d=touchSX-e.changedTouches[0].clientX;if(Math.abs(d)>50)navLb(d>0?1:-1)});
-document.getElementById('lightbox').addEventListener('click',e=>{if(e.target===e.currentTarget)closeLightbox()});
-
-// ===== KAKAO CHAT STORY =====
-const chatData = [
-  {type:'date', text:'2024년 3월 15일 금요일'},
-  
-  {type:'label', text:'💬 첫 만남은 어땠나요?'},
-  
-  {who:'groom', name:'성민', msg:'대학교 동아리에서 처음 만났어요'},
-  {who:'groom', name:'성민', msg:'활동 중에 밝게 웃는 모습을 보고 첫눈에 반했습니다 😍'},
-  {who:'groom', name:'성민', msg:'그날 집에 가는 길이 그렇게 설렐 수가 없었어요'},
-  {who:'bride', name:'수빈', msg:'처음에는 조용한 사람인 줄 알았는데'},
-  {who:'bride', name:'수빈', msg:'이야기를 나눌수록 유머감각이 넘치더라고요 ㅋㅋㅋ'},
-  {who:'bride', name:'수빈', msg:'자연스럽게 자꾸 눈이 갔어요 👀'},
-  
-  {type:'date', text:'2025년 12월 24일 화요일'},
-  
-  {type:'label', text:'💍 프로포즈는 어떻게 했나요?'},
-  
-  {who:'groom', name:'성민', msg:'우리가 처음 만난 장소에서 깜짝 이벤트를 준비했어요'},
-  {who:'groom', name:'성민', msg:'떨리는 마음으로 무릎을 꿇었는데...'},
-  {who:'groom', name:'성민', msg:'수빈이가 울면서 고개를 끄덕여줬습니다 😭💍'},
-  {who:'bride', name:'수빈', msg:'전혀 예상하지 못했어요!!'},
-  {who:'bride', name:'수빈', msg:'익숙한 장소에서 갑자기 무릎을 꿇는 모습에 눈물이 멈추지 않았어요 ㅠㅠ'},
-  {who:'bride', name:'수빈', msg:'세상에서 가장 행복한 순간이었습니다 💕'},
-  {who:'bride', name:'수빈', emoji:'🥹'},
-  
-  {type:'date', text:'2026년 6월 27일을 기다리며'},
-  
-  {type:'label', text:'💌 상대방에게 한마디!'},
-  
-  {who:'groom', name:'성민', msg:'매일이 소중한 사람.'},
-  {who:'groom', name:'성민', msg:'앞으로 평생 네 편이 되어줄게.'},
-  {who:'groom', name:'성민', msg:'사랑해, 수빈아 ❤️'},
-  {who:'bride', name:'수빈', msg:'당신과 함께라면 어디든 좋아요'},
-  {who:'bride', name:'수빈', msg:'우리 앞으로도 지금처럼 함께 웃으며 살아요'},
-  {who:'bride', name:'수빈', msg:'사랑해요, 성민 오빠 🥰'},
-  {who:'groom', name:'성민', emoji:'😘'},
-  {who:'bride', name:'수빈', emoji:'💗'},
-];
-
-function renderKakaoChat(){
-  const chat = document.getElementById('kakaoChat');
-  let html = '';
-  const times = ['오후 2:30','오후 2:31','오후 2:32','오후 2:33','오후 2:34','오후 2:35','오후 2:36','오후 2:37','오후 2:38','오후 2:39'];
-  let tIdx = 0;
-  
-  chatData.forEach((item, i) => {
-    if(item.type === 'date'){
-      html += `<div class="chat-date">${item.text}</div>`;
-      tIdx = 0;
-    } else if(item.type === 'label'){
-      html += `<div style="text-align:center;margin:20px 0 12px"><span class="chat-q-label">${item.text}</span></div>`;
-    } else {
-      const isMine = item.who === 'bride';
-      const showAvatar = !isMine; // Show avatar for groom (left side)
-      const time = times[tIdx % times.length];
-      
-      html += `<div class="chat-row ${isMine?'mine':''}" data-chat-idx="${i}">`;
-      if(showAvatar){
-        html += `<div class="chat-avatar">🤵</div>`;
-      }
-      html += `<div class="chat-content">`;
-      if(showAvatar) html += `<div class="chat-name">${item.name}</div>`;
-      if(item.emoji){
-        html += `<div class="chat-bubble"><span class="chat-emoji">${item.emoji}</span></div>`;
-      } else {
-        html += `<div class="chat-bubble">${escHtml(item.msg)}</div>`;
-      }
-      html += `<div class="chat-time">${time}</div>`;
-      html += `</div>`;
-      if(isMine){
-        html += `<div class="chat-avatar">👰</div>`;
-      }
-      html += `</div>`;
-      tIdx++;
+  useEffect(() => {
+    if (audioRef.current) {
+      playing ? audioRef.current.play().catch(() => {}) : audioRef.current.pause();
     }
-  });
-  chat.innerHTML = html;
-}
-renderKakaoChat();
+  }, [playing]);
 
-// Animate chat bubbles on scroll
-const chatObserver = new IntersectionObserver((entries)=>{
-  entries.forEach(entry=>{
-    if(entry.isIntersecting) entry.target.classList.add('visible');
-  });
-}, {threshold:0.1, rootMargin:'0px 0px -50px 0px'});
-// Observe after render
-setTimeout(()=>{
-  document.querySelectorAll('.chat-row').forEach(el => chatObserver.observe(el));
-},100);
+  return (
+    <>
+      <style>{`
+        @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        * { -webkit-tap-highlight-color: transparent; }
+        body { margin:0; background:${P.bg}; }
+        ::-webkit-scrollbar { display: none; }
+      `}</style>
 
-// ===== COPY ACCOUNT =====
-function copyAcc(btn,num){
-  navigator.clipboard.writeText(num).then(()=>{
-    btn.textContent='완료';btn.classList.add('copied');showToast('계좌번호가 복사되었습니다');
-    setTimeout(()=>{btn.textContent='복사';btn.classList.remove('copied')},2000);
-  }).catch(()=>{
-    const ta=document.createElement('textarea');ta.value=num;document.body.appendChild(ta);ta.select();document.execCommand('copy');document.body.removeChild(ta);
-    btn.textContent='완료';btn.classList.add('copied');showToast('계좌번호가 복사되었습니다');
-    setTimeout(()=>{btn.textContent='복사';btn.classList.remove('copied')},2000);
-  });
-}
+      <audio ref={audioRef} loop preload="auto"><source src="" type="audio/mpeg" /></audio>
 
-// ===== GUESTBOOK =====
-let gbData=JSON.parse(localStorage.getItem('wedding_gb')||'[]');
-function renderGb(){
-  const list=document.getElementById('gbList');
-  list.innerHTML=gbData.slice().reverse().map((e,i)=>
-    `<div class="gb-entry"><div class="gb-entry-hd"><span class="gb-entry-nm">${escHtml(e.name)}</span><span><span class="gb-entry-dt">${e.date}</span><button class="gb-del" onclick="delGb(${gbData.length-1-i})">삭제</button></span></div><div class="gb-entry-msg">${escHtml(e.msg)}</div></div>`
-  ).join('');
-}
-function submitGb(){
-  const n=document.getElementById('gbName').value.trim();
-  const p=document.getElementById('gbPw').value.trim();
-  const m=document.getElementById('gbMsg').value.trim();
-  if(!n||!p||!m){showToast('모든 항목을 입력해주세요');return}
-  gbData.push({name:n,pw:p,msg:m,date:new Date().toLocaleDateString('ko-KR')});
-  localStorage.setItem('wedding_gb',JSON.stringify(gbData));
-  document.getElementById('gbName').value='';document.getElementById('gbPw').value='';document.getElementById('gbMsg').value='';
-  renderGb();showToast('축하 메시지가 등록되었습니다 💌');
-}
-function delGb(i){
-  const pw=prompt('비밀번호를 입력하세요');
-  if(pw&&pw===gbData[i].pw){gbData.splice(i,1);localStorage.setItem('wedding_gb',JSON.stringify(gbData));renderGb();showToast('삭제되었습니다')}
-  else if(pw)showToast('비밀번호가 올바르지 않습니다');
-}
-renderGb();
+      {!entered && <Splash onEnter={enter} />}
 
-// ===== RSVP =====
-let selRsvpVal='';
-function openRsvp(){document.getElementById('rsvpModal').classList.add('active')}
-function closeRsvp(){document.getElementById('rsvpModal').classList.remove('active')}
-function selRsvp(btn,v){
-  document.querySelectorAll('.rsvp-opt').forEach(b=>b.classList.remove('sel'));
-  btn.classList.add('sel');selRsvpVal=v;
-  document.getElementById('rsvpMealWrap').style.display=v==='attend'?'block':'none';
+      <div style={{
+        fontFamily: "'Pretendard', sans-serif", color: P.black, background: P.bg,
+        maxWidth: 480, minHeight: "100vh", margin: "0 auto", position: "relative",
+        overflowX: "hidden", opacity: fadeIn ? 1 : 0, transition: "opacity .8s ease", paddingBottom: 60
+      }}>
+        <FloatingMusic playing={playing} toggle={() => setPlaying(!playing)} />
+        <Hero />
+        <Info />
+        <Parents />
+        <Contact />
+        <Calendar />
+        <Gallery />
+        <OurStory />
+        <Location />
+        <Account />
+        <Guestbook />
+        <RSVP />
+        
+        <div style={{ textAlign: "center", marginTop: 40, fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".2em", color: P.gray }}>
+          M & S <br/><span style={{ fontSize: 8, opacity: 0.6 }}>2025. 06. 27</span>
+        </div>
+      </div>
+    </>
+  );
 }
-function sendRsvp(){
-  const n=document.getElementById('rsvpName').value.trim();
-  if(!n){showToast('이름을 입력해주세요');return}
-  if(!selRsvpVal){showToast('참석 여부를 선택해주세요');return}
-  const g=document.getElementById('rsvpGuests').value;
-  const rsvp=JSON.parse(localStorage.getItem('wedding_rsvp')||'[]');
-  rsvp.push({name:n,phone:document.getElementById('rsvpPhone').value,attend:selRsvpVal,guests:g,date:new Date().toISOString()});
-  localStorage.setItem('wedding_rsvp',JSON.stringify(rsvp));
-  closeRsvp();showToast(selRsvpVal==='attend'?'참석 의사가 전달되었습니다 🎉':'소중한 마음 감사합니다 💌');
-  document.getElementById('rsvpName').value='';document.getElementById('rsvpPhone').value='';selRsvpVal='';
-  document.querySelectorAll('.rsvp-opt').forEach(b=>b.classList.remove('sel'));
-  document.getElementById('rsvpMealWrap').style.display='none';
-}
-document.getElementById('rsvpModal').addEventListener('click',e=>{if(e.target===e.currentTarget)closeRsvp()});
-
-// ===== SCROLL ANIMATIONS =====
-const fadeObs = new IntersectionObserver(entries=>{
-  entries.forEach(e=>{if(e.isIntersecting)e.target.classList.add('visible')});
-},{threshold:0.15});
-document.querySelectorAll('.fade-in').forEach(el=>fadeObs.observe(el));
-
-// ===== INIT =====
-window.addEventListener('DOMContentLoaded', ()=>{
-  initPolaroids();
-  renderGridGallery();
-});
-
-// ===== REQUEST MOTION PERMISSION (iOS 13+) =====
-if(typeof DeviceMotionEvent!=='undefined' && typeof DeviceMotionEvent.requestPermission==='function'){
-  document.getElementById('gallerySection').addEventListener('click', async function handler(){
-    try{
-      const perm = await DeviceMotionEvent.requestPermission();
-      if(perm==='granted') showToast('폰을 흔들어보세요! 📸');
-    }catch(e){}
-    this.removeEventListener('click', handler);
-  }, {once:true});
-}
-</script>
-</body>
-</html>
