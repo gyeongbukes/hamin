@@ -1,525 +1,419 @@
-import { useState, useEffect, useRef, useCallback } from "react";
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+  <title>M & S Wedding</title>
 
-const WEDDING_DATE = new Date("2025-06-27T12:00:00");
-const img = (id, w = 400, h = 400) => `https://picsum.photos/seed/wed${id}/${w}/${h}`;
-const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => img(i + 10, 600, 400));
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Serif+KR:wght@300;400;500&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
 
-// 시크하고 모던한 컬러 팔레트 (블랙 & 화이트 & 그레이)
-const P = {
-  bg: "#F4F4F4",
-  white: "#FFFFFF",
-  black: "#111111",
-  darkGray: "#555555",
-  gray: "#999999",
-  lightGray: "#E5E5E5",
-  border: "#DDDDDD",
-};
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
 
-// 트렌디한 폰트 (SSR 환경 에러 방지용 typeof 체크)
-if (typeof document !== 'undefined') {
-  const l = document.createElement("link");
-  l.href = "https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;1,400&family=Noto+Serif+KR:wght@300;400;500&display=swap";
-  l.rel = "stylesheet";
-  document.head.appendChild(l);
-  
-  const p = document.createElement("link");
-  p.href = "https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css";
-  p.rel = "stylesheet";
-  document.head.appendChild(p);
-}
+  <style>
+    /* 기본 여백 제거 및 배경 설정 */
+    body { margin: 0; padding: 0; background-color: #F4F4F4; -webkit-tap-highlight-color: transparent; }
+    ::-webkit-scrollbar { display: none; } /* 스크롤바 숨김 */
+  </style>
+</head>
+<body>
+  <div id="root"></div>
 
-const S = {
-  section: { padding: "40px 24px", position: "relative" },
-  tight: { padding: "30px 24px", position: "relative" },
-  divider: { width: 40, height: 1, background: P.black, margin: "0 auto", opacity: 0.2 },
-  title: {
-    fontFamily: "'Playfair Display', serif",
-    fontSize: 14, fontWeight: 600, letterSpacing: ".25em",
-    color: P.black, textAlign: "center", marginBottom: 24,
-    textTransform: "uppercase",
-  },
-  btn: {
-    fontFamily: "'Pretendard', sans-serif", fontWeight: 500,
-    border: `1px solid ${P.black}`, background: P.white,
-    color: P.black, padding: "12px 32px", borderRadius: 30,
-    fontSize: 13, cursor: "pointer", transition: "all .3s",
-    letterSpacing: ".02em",
-  },
-};
+  <script type="text/babel">
+    // import 대신 브라우저 방식의 React 함수 불러오기
+    const { useState, useEffect, useRef, useCallback } = React;
 
-/* ═══════════════════════════════════════
-   HOOKS & UTILS
-   ═══════════════════════════════════════ */
-function useReveal(threshold = 0.15) {
-  const ref = useRef(null);
-  const [vis, setVis] = useState(false);
-  useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const obs = new IntersectionObserver(([e]) => {
-      if (e.isIntersecting) { setVis(true); obs.disconnect(); }
-    }, { threshold });
-    obs.observe(el);
-    return () => obs.disconnect();
-  }, []);
-  return [ref, vis];
-}
+    const WEDDING_DATE = new Date("2025-06-27T12:00:00");
+    const img = (id, w = 400, h = 400) => `https://picsum.photos/seed/wed${id}/${w}/${h}`;
+    const GALLERY_IMAGES = Array.from({ length: 16 }, (_, i) => img(i + 10, 600, 400));
 
-function Reveal({ children, delay = 0, style = {} }) {
-  const [ref, vis] = useReveal();
-  return (
-    <div ref={ref} style={{
-      opacity: vis ? 1 : 0,
-      transform: vis ? "translateY(0)" : "translateY(30px)",
-      transition: `opacity .8s ease ${delay}ms, transform .8s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms`,
-      ...style,
-    }}>
-      {children}
-    </div>
-  );
-}
+    // 시크하고 모던한 컬러 팔레트
+    const P = {
+      bg: "#F4F4F4", white: "#FFFFFF", black: "#111111", darkGray: "#555555",
+      gray: "#999999", lightGray: "#E5E5E5", border: "#DDDDDD",
+    };
 
-/* ═══════════════════════════════════════
-   COMPONENTS
-   ═══════════════════════════════════════ */
-function Splash({ onEnter }) {
-  const [leaving, setLeaving] = useState(false);
-  const go = () => { setLeaving(true); setTimeout(onEnter, 800); };
+    const S = {
+      section: { padding: "40px 24px", position: "relative" },
+      tight: { padding: "30px 24px", position: "relative" },
+      divider: { width: 40, height: 1, background: P.black, margin: "0 auto", opacity: 0.2 },
+      title: { fontFamily: "'Playfair Display', serif", fontSize: 14, fontWeight: 600, letterSpacing: ".25em", color: P.black, textAlign: "center", marginBottom: 24, textTransform: "uppercase" },
+      btn: { fontFamily: "'Pretendard', sans-serif", fontWeight: 500, border: `1px solid ${P.black}`, background: P.white, color: P.black, padding: "12px 32px", borderRadius: 30, fontSize: 13, cursor: "pointer", transition: "all .3s", letterSpacing: ".02em" },
+    };
 
-  return (
-    <div onClick={go} style={{
-      position: "fixed", inset: 0, zIndex: 1000, background: P.bg,
-      display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-      cursor: "pointer", transition: "opacity .8s ease", opacity: leaving ? 0 : 1,
-    }}>
-      <div style={{
-        background: P.white, padding: "14px 14px 48px",
-        boxShadow: "0 10px 40px rgba(0,0,0,0.08)", width: "65%", maxWidth: 280,
-        position: "relative", transition: "transform .8s", transform: leaving ? "translateY(-30px)" : "translateY(0)",
-      }}>
-        <div style={{ width: "100%", aspectRatio: "3/4", background: `url(${img("childhood", 400, 530)}) center/cover`, filter: "grayscale(30%)" }} />
-        <div style={{
-          position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center",
-          fontFamily: "'Playfair Display', serif", fontSize: 11, color: P.black, letterSpacing: ".2em",
-        }}>OUR BEGINNING</div>
-      </div>
-      <p style={{
-        marginTop: 40, fontFamily: "'Pretendard', sans-serif", fontSize: 12, fontWeight: 300,
-        color: P.darkGray, letterSpacing: ".1em", animation: "cursorBlink 2s ease-in-out infinite",
-      }}>화면을 터치해 주세요</p>
-    </div>
-  );
-}
-
-function Hero() {
-  return (
-    <div style={{ padding: "40px 24px 20px" }}>
-      <div style={{
-        background: P.white, padding: "16px 16px 50px", boxShadow: "0 8px 24px rgba(0,0,0,0.04)", position: "relative"
-      }}>
-        <img src={img("wedding-main", 600, 800)} alt="웨딩" style={{ width: "100%", display: "block", aspectRatio: "3/4", objectFit: "cover", filter: "contrast(1.05)" }} />
-        <div style={{ position: "absolute", bottom: 18, left: 16, right: 16, display: "flex", justifyContent: "space-between", fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".1em", color: P.black }}>
-          <span>M & S</span>
-          <span>2025. 06. 27</span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function Info() {
-  return (
-    <Reveal>
-      <div style={{ ...S.section, textAlign: "center" }}>
-        <h2 style={{ fontFamily: "'Noto Serif KR', serif", fontSize: 24, fontWeight: 400, margin: "0 0 16px", color: P.black }}>
-          김민준 <span style={{ fontSize: 16, fontFamily: "'Playfair Display', serif", fontStyle: "italic", margin: "0 10px", color: P.gray }}>and</span> 이서연
-        </h2>
-        <div style={S.divider} />
-        <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 14, color: P.black, marginTop: 16, fontWeight: 400, lineHeight: 1.6 }}>
-          2025년 6월 27일 금요일 낮 12시<br />
-          <span style={{ fontSize: 13, color: P.darkGray, marginTop: 4, display: "inline-block" }}>그랜드 하얏트 서울 그랜드볼룸</span>
-        </p>
-      </div>
-    </Reveal>
-  );
-}
-
-function Parents() {
-  return (
-    <Reveal>
-      <div style={{ ...S.tight, textAlign: "center", paddingTop: 0, paddingBottom: 30 }}>
-        <div style={{ fontSize: 13, lineHeight: 2.2, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>
-          <p style={{ margin: 0 }}>
-            <span style={{ color: P.gray, marginRight: 8 }}>신랑측</span> 김OO · 박OO
-            <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 아들 </span><b>민준</b>
-          </p>
-          <p style={{ margin: 0 }}>
-            <span style={{ color: P.gray, marginRight: 8 }}>신부측</span> 이OO · 최OO
-            <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 딸 </span><b>서연</b>
-          </p>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Contact() {
-  const [open, setOpen] = useState(null);
-  const contacts = {
-    groom: [
-      { label: "신랑", name: "김민준", tel: "010-1234-5678" },
-      { label: "신랑 아버지", name: "김OO", tel: "010-1111-2222" },
-      { label: "신랑 어머니", name: "박OO", tel: "010-3333-4444" },
-    ],
-    bride: [
-      { label: "신부", name: "이서연", tel: "010-5678-1234" },
-      { label: "신부 아버지", name: "이OO", tel: "010-5555-6666" },
-      { label: "신부 어머니", name: "최OO", tel: "010-7777-8888" },
-    ],
-  };
-
-  return (
-    <Reveal>
-      <div style={{ ...S.tight, textAlign: "center" }}>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          {["groom", "bride"].map(side => (
-            <button key={side} onClick={() => setOpen(open === side ? null : side)}
-              style={{ ...S.btn, background: open === side ? P.black : P.white, color: open === side ? P.white : P.black, minWidth: 120 }}>
-              {side === "groom" ? "신랑측" : "신부측"} 연락하기
-            </button>
-          ))}
-        </div>
-        <div style={{ maxHeight: open ? 300 : 0, overflow: "hidden", transition: "max-height .4s ease, opacity .3s ease", opacity: open ? 1 : 0 }}>
-          {open && (
-            <div style={{ marginTop: 16, background: P.white, borderRadius: 8, padding: "14px 16px", border: `1px solid ${P.border}` }}>
-              {contacts[open]?.map((c, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", fontSize: 13, borderBottom: i < contacts[open].length - 1 ? `1px solid ${P.lightGray}` : "none" }}>
-                  <span><span style={{ color: P.gray, marginRight: 8 }}>{c.label}</span>{c.name}</span>
-                  <a href={`tel:${c.tel}`} style={{ color: P.black, textDecoration: "none", fontSize: 11, padding: "4px 14px", border: `1px solid ${P.black}`, borderRadius: 20 }}>전화</a>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Calendar() {
-  const wd = WEDDING_DATE;
-  const diff = Math.max(0, Math.ceil((wd - new Date()) / 864e5));
-  const y = wd.getFullYear(), m = wd.getMonth();
-  const first = new Date(y, m, 1).getDay();
-  const total = new Date(y, m + 1, 0).getDate();
-  const days = [...Array(first).fill(null), ...Array.from({ length: total }, (_, i) => i + 1)];
-  const dn = ["S", "M", "T", "W", "T", "F", "S"];
-
-  return (
-    <Reveal>
-      <div style={{ ...S.tight, background: P.white, marginTop: 20 }}>
-        <p style={S.title}>Calendar</p>
-        <div style={{ maxWidth: 300, margin: "0 auto" }}>
-          <p style={{ textAlign: "center", fontSize: 14, fontWeight: 600, margin: "0 0 20px", color: P.black, fontFamily: "'Playfair Display', serif" }}>
-            {y}. {String(m + 1).padStart(2, '0')}
-          </p>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", textAlign: "center", gap: "8px 0" }}>
-            {dn.map((d, i) => (
-              <div key={i} style={{ fontSize: 10, color: P.gray, fontFamily: "'Playfair Display', serif" }}>{d}</div>
-            ))}
-            {days.map((d, i) => {
-              const isW = d === wd.getDate();
-              return (
-                <div key={i} style={{ padding: "8px 0", position: "relative", color: !d ? "transparent" : (isW ? P.white : P.black), fontSize: 12, fontFamily: "'Pretendard', sans-serif", fontWeight: isW ? 600 : 400 }}>
-                  {isW && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 26, height: 26, borderRadius: "50%", background: P.black, zIndex: 0 }} />}
-                  <span style={{ position: "relative", zIndex: 1 }}>{d}</span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
-        <div style={{ textAlign: "center", marginTop: 30 }}>
-          <p style={{ fontSize: 13, color: P.darkGray, fontFamily: "'Pretendard', sans-serif" }}>
-            결혼식까지 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: P.black, margin: "0 6px" }}>{diff}</span> 일
-          </p>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Gallery() {
-  const strips = [];
-  for (let i = 0; i < GALLERY_IMAGES.length; i += 4) {
-    strips.push(GALLERY_IMAGES.slice(i, i + 4));
-  }
-
-  return (
-    <Reveal delay={100}>
-      <div style={{ ...S.tight, paddingLeft: 0, paddingRight: 0, overflow: "hidden" }}>
-        <p style={S.title}>Life Four Cuts</p>
-        <div style={{ display: "flex", overflowX: "auto", gap: 16, padding: "0 24px 30px", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
-          {strips.map((strip, si) => (
-            <div key={si} style={{ flex: "0 0 220px", scrollSnapAlign: "center", background: P.white, padding: "12px 12px 40px 12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
-              {strip.map((src, pi) => (
-                <div key={pi} style={{ width: "100%", aspectRatio: "3/2", backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center", filter: "contrast(1.1) grayscale(10%)" }} />
-              ))}
-              <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-                <div style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 8, color: P.black, letterSpacing: ".1em", lineHeight: 1.2 }}>M & S WEDDING<br /><span style={{ color: P.gray }}>VOL. {si + 1}</span></div>
-                <div style={{ display: "flex", gap: 2, height: 12, alignItems: "flex-end", opacity: 0.5 }}>
-                  <div style={{ width: 2, height: "100%", background: P.black }}/><div style={{ width: 1, height: "80%", background: P.black }}/><div style={{ width: 3, height: "100%", background: P.black }}/><div style={{ width: 1, height: "60%", background: P.black }}/><div style={{ width: 2, height: "100%", background: P.black }}/>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-        <p style={{ textAlign: "center", fontSize: 11, fontFamily: "'Pretendard', sans-serif", color: P.gray, marginTop: "-10px" }}>← 옆으로 넘겨보세요 →</p>
-      </div>
-    </Reveal>
-  );
-}
-
-function OurStory() {
-  const qna = [
-    { q: "첫 만남은 어땠나요?", a: "친구 모임에서 처음 만났는데, 웃는 모습이 너무 예뻐서 눈을 뗄 수 없었어요. (민준)" },
-    { q: "결혼을 결심한 계기는?", a: "함께 있을 때 가장 나다운 모습이 된다는 걸 알았을 때, 이 사람이라고 확신했어요. (서연)" },
-  ];
-
-  return (
-    <Reveal>
-      <div style={{ ...S.tight, background: P.white }}>
-        <p style={S.title}>Interview</p>
-        <div style={{ display: "flex", flexDirection: "column", gap: 24, padding: "0 10px" }}>
-          {qna.map((item, i) => (
-            <div key={i} style={{ borderLeft: `2px solid ${P.black}`, paddingLeft: 16 }}>
-              <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, fontWeight: 600, color: P.black, margin: "0 0 8px" }}>Q. {item.q}</p>
-              <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, color: P.darkGray, lineHeight: 1.6, margin: 0, fontWeight: 300 }}>A. {item.a}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Location() {
-  return (
-    <Reveal>
-      <div style={{ ...S.tight }}>
-        <p style={S.title}>Location</p>
-        <div style={{ textAlign: "center", fontFamily: "'Pretendard', sans-serif" }}>
-          <p style={{ fontSize: 15, fontWeight: 600, margin: "0 0 4px", color: P.black }}>그랜드 하얏트 서울</p>
-          <p style={{ fontSize: 12, color: P.darkGray, margin: "0 0 2px" }}>그랜드볼룸 1층</p>
-          <p style={{ fontSize: 12, color: P.gray, margin: "0 0 20px" }}>서울특별시 용산구 소월로 322</p>
-          
-          <div style={{ width: "100%", height: 180, background: P.lightGray, marginBottom: 16, border: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: P.gray, fontSize: 12 }}>
-            지도 영역 (API 연동)
-          </div>
-          <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
-            {["네이버 지도", "카카오맵", "길 찾기"].map(t => (
-              <button key={t} style={{ ...S.btn, fontSize: 11, padding: "8px 18px", borderRadius: 4 }}>{t}</button>
-            ))}
-          </div>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Account() {
-  const [open, setOpen] = useState(null);
-  const accounts = {
-    groom: [{ bank: "국민은행", num: "123-456-789012", name: "김민준" }],
-    bride: [{ bank: "카카오뱅크", num: "3333-01-2345678", name: "이서연" }],
-  };
-  const copy = t => { navigator.clipboard.writeText(t).then(() => alert("복사되었습니다.")); };
-
-  return (
-    <Reveal>
-      <div style={{ ...S.tight, background: P.white }}>
-        <p style={S.title}>Account</p>
-        <p style={{ textAlign: "center", fontSize: 12, color: P.gray, margin: "0 0 20px", fontFamily: "'Pretendard', sans-serif" }}>축하의 마음을 전해 주세요</p>
-        <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
-          {["groom", "bride"].map(side => (
-            <button key={side} onClick={() => setOpen(open === side ? null : side)}
-              style={{ ...S.btn, background: open === side ? P.black : P.bg, color: open === side ? P.white : P.black, border: "none", minWidth: 120 }}>
-              {side === "groom" ? "신랑측" : "신부측"} 계좌
-            </button>
-          ))}
-        </div>
-        <div style={{ maxHeight: open ? 200 : 0, overflow: "hidden", transition: "all .3s ease", opacity: open ? 1 : 0 }}>
-          {open && (
-            <div style={{ marginTop: 16, background: P.bg, borderRadius: 8, padding: "12px 16px" }}>
-              {accounts[open]?.map((a, i) => (
-                <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "'Pretendard', sans-serif" }}>
-                  <div>
-                    <span style={{ color: P.darkGray, marginRight: 8 }}>{a.bank}</span><span style={{ color: P.black }}>{a.num}</span>
-                    <div style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>{a.name}</div>
-                  </div>
-                  <button onClick={() => copy(a.num)} style={{ ...S.btn, fontSize: 11, padding: "6px 14px", borderRadius: 4 }}>복사</button>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function Guestbook() {
-  const [entries, setEntries] = useState([]);
-  const [name, setName] = useState("");
-  const [msg, setMsg] = useState("");
-
-  // window.storage 대신 에러가 없는 localStorage 사용
-  useEffect(() => {
-    try {
-      const saved = localStorage.getItem("guestbook");
-      if (saved) setEntries(JSON.parse(saved));
-    } catch (e) {}
-  }, []);
-
-  const submit = () => {
-    if (!name.trim() || !msg.trim()) return;
-    const newEntries = [{ id: Date.now(), name, msg, date: new Date().toLocaleDateString() }, ...entries];
-    setEntries(newEntries);
-    try { localStorage.setItem("guestbook", JSON.stringify(newEntries)); } catch (e) {}
-    setName(""); setMsg("");
-  };
-
-  const inputStyle = { border: "none", borderBottom: `1px solid ${P.gray}`, borderRadius: 0, padding: "8px 4px", fontSize: 13, fontFamily: "'Pretendard', sans-serif", outline: "none", background: "transparent", width: "100%", boxSizing: "border-box", color: P.black };
-
-  return (
-    <Reveal>
-      <div style={{ ...S.tight }}>
-        <p style={S.title}>Guest Book</p>
-        <div style={{ background: P.white, padding: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.03)", marginBottom: 20 }}>
-          <div style={{ display: "flex", gap: 12, marginBottom: 16 }}>
-            <input value={name} onChange={e => setName(e.target.value)} placeholder="이름" style={inputStyle} />
-          </div>
-          <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="축하 메시지를 남겨주세요." rows={2} style={{ ...inputStyle, resize: "none", borderBottom: "none", background: P.bg, padding: "12px", borderRadius: 4 }} />
-          <button onClick={submit} style={{ ...S.btn, width: "100%", marginTop: 16, background: P.black, color: P.white }}>등록하기</button>
-        </div>
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {entries.map(e => (
-            <div key={e.id} style={{ background: P.white, padding: "16px", borderRadius: 8, border: `1px solid ${P.border}` }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontFamily: "'Pretendard', sans-serif" }}>
-                <span style={{ fontSize: 13, fontWeight: 600, color: P.black }}>{e.name}</span>
-                <span style={{ fontSize: 11, color: P.gray }}>{e.date}</span>
-              </div>
-              <p style={{ fontSize: 13, margin: 0, color: P.darkGray, lineHeight: 1.5, fontFamily: "'Pretendard', sans-serif" }}>{e.msg}</p>
-            </div>
-          ))}
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function RSVP() {
-  const [rn, setRn] = useState("");
-  const [att, setAtt] = useState("");
-  const [sent, setSent] = useState(false);
-
-  const submit = () => {
-    if (!rn.trim() || !att) return alert("항목을 입력해주세요.");
-    setSent(true);
-  };
-
-  if (sent) return (
-    <div style={{ ...S.tight, background: P.white, textAlign: "center" }}>
-      <p style={S.title}>RSVP</p>
-      <p style={{ fontSize: 14, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>참석 여부가 전달되었습니다.<br />감사합니다.</p>
-    </div>
-  );
-
-  return (
-    <Reveal>
-      <div style={{ ...S.tight, background: P.white }}>
-        <p style={S.title}>RSVP</p>
-        <div style={{ maxWidth: 320, margin: "0 auto", fontFamily: "'Pretendard', sans-serif" }}>
-          <input value={rn} onChange={e => setRn(e.target.value)} placeholder="성함" style={{ width: "100%", border: `1px solid ${P.border}`, padding: "12px", fontSize: 13, boxSizing: "border-box", marginBottom: 12, outline: "none" }} />
-          <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
-            {["참석", "미정", "불참"].map(o => (
-              <button key={o} onClick={() => setAtt(o)} style={{ flex: 1, padding: "10px 0", background: att === o ? P.black : P.bg, color: att === o ? P.white : P.darkGray, border: "none", fontSize: 13, cursor: "pointer" }}>{o}</button>
-            ))}
-          </div>
-          <button onClick={submit} style={{ ...S.btn, width: "100%", background: P.black, color: P.white, borderRadius: 4 }}>전달하기</button>
-        </div>
-      </div>
-    </Reveal>
-  );
-}
-
-function FloatingMusic({ playing, toggle }) {
-  return (
-    <button onClick={toggle} style={{
-      position: "fixed", top: 16, right: 16, zIndex: 900, width: 36, height: 36, borderRadius: "50%",
-      border: `1px solid ${P.border}`, background: "rgba(255,255,255,0.9)",
-      display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer",
-      color: P.black, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", animation: playing ? "spin 4s linear infinite" : "none"
-    }}>♫</button>
-  );
-}
-
-/* ═══════════════════════════════════════
-   MAIN APP
-   ═══════════════════════════════════════ */
-export default function WeddingInvitation() {
-  const [entered, setEntered] = useState(false);
-  const [fadeIn, setFadeIn] = useState(false);
-  const [playing, setPlaying] = useState(false);
-  const audioRef = useRef(null);
-
-  const enter = () => {
-    setEntered(true);
-    setPlaying(true);
-    setTimeout(() => setFadeIn(true), 50);
-  };
-
-  useEffect(() => {
-    if (audioRef.current) {
-      playing ? audioRef.current.play().catch(() => {}) : audioRef.current.pause();
+    function useReveal(threshold = 0.15) {
+      const ref = useRef(null);
+      const [vis, setVis] = useState(false);
+      useEffect(() => {
+        const el = ref.current;
+        if (!el) return;
+        const obs = new IntersectionObserver(([e]) => {
+          if (e.isIntersecting) { setVis(true); obs.disconnect(); }
+        }, { threshold });
+        obs.observe(el);
+        return () => obs.disconnect();
+      }, []);
+      return [ref, vis];
     }
-  }, [playing]);
 
-  return (
-    <>
-      <style>{`
-        @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
-        @keyframes spin { to { transform: rotate(360deg); } }
-        * { -webkit-tap-highlight-color: transparent; }
-        body { margin:0; background:${P.bg}; }
-        ::-webkit-scrollbar { display: none; }
-      `}</style>
-
-      <audio ref={audioRef} loop preload="auto"><source src="" type="audio/mpeg" /></audio>
-
-      {!entered && <Splash onEnter={enter} />}
-
-      <div style={{
-        fontFamily: "'Pretendard', sans-serif", color: P.black, background: P.bg,
-        maxWidth: 480, minHeight: "100vh", margin: "0 auto", position: "relative",
-        overflowX: "hidden", opacity: fadeIn ? 1 : 0, transition: "opacity .8s ease", paddingBottom: 60
-      }}>
-        <FloatingMusic playing={playing} toggle={() => setPlaying(!playing)} />
-        <Hero />
-        <Info />
-        <Parents />
-        <Contact />
-        <Calendar />
-        <Gallery />
-        <OurStory />
-        <Location />
-        <Account />
-        <Guestbook />
-        <RSVP />
-        
-        <div style={{ textAlign: "center", marginTop: 40, fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".2em", color: P.gray }}>
-          M & S <br/><span style={{ fontSize: 8, opacity: 0.6 }}>2025. 06. 27</span>
+    function Reveal({ children, delay = 0, style = {} }) {
+      const [ref, vis] = useReveal();
+      return (
+        <div ref={ref} style={{ opacity: vis ? 1 : 0, transform: vis ? "translateY(0)" : "translateY(30px)", transition: `opacity .8s ease ${delay}ms, transform .8s cubic-bezier(0.2, 0.8, 0.2, 1) ${delay}ms`, ...style }}>
+          {children}
         </div>
-      </div>
-    </>
-  );
-}
+      );
+    }
+
+    function Splash({ onEnter }) {
+      const [leaving, setLeaving] = useState(false);
+      const go = () => { setLeaving(true); setTimeout(onEnter, 800); };
+      return (
+        <div onClick={go} style={{ position: "fixed", inset: 0, zIndex: 1000, background: P.bg, display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", cursor: "pointer", transition: "opacity .8s ease", opacity: leaving ? 0 : 1 }}>
+          <div style={{ background: P.white, padding: "14px 14px 48px", boxShadow: "0 10px 40px rgba(0,0,0,0.08)", width: "65%", maxWidth: 280, position: "relative", transition: "transform .8s", transform: leaving ? "translateY(-30px)" : "translateY(0)" }}>
+            <div style={{ width: "100%", aspectRatio: "3/4", background: `url(${img("childhood", 400, 530)}) center/cover`, filter: "grayscale(30%)" }} />
+            <div style={{ position: "absolute", bottom: 16, left: 0, right: 0, textAlign: "center", fontFamily: "'Playfair Display', serif", fontSize: 11, color: P.black, letterSpacing: ".2em" }}>OUR BEGINNING</div>
+          </div>
+          <p style={{ marginTop: 40, fontFamily: "'Pretendard', sans-serif", fontSize: 12, fontWeight: 300, color: P.darkGray, letterSpacing: ".1em", animation: "cursorBlink 2s ease-in-out infinite" }}>화면을 터치해 주세요</p>
+        </div>
+      );
+    }
+
+    function Hero() {
+      return (
+        <div style={{ padding: "40px 24px 20px" }}>
+          <div style={{ background: P.white, padding: "16px 16px 50px", boxShadow: "0 8px 24px rgba(0,0,0,0.04)", position: "relative" }}>
+            <img src={img("wedding-main", 600, 800)} alt="웨딩" style={{ width: "100%", display: "block", aspectRatio: "3/4", objectFit: "cover", filter: "contrast(1.05)" }} />
+            <div style={{ position: "absolute", bottom: 18, left: 16, right: 16, display: "flex", justifyContent: "space-between", fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".1em", color: P.black }}>
+              <span>M & S</span><span>2025. 06. 27</span>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function Info() {
+      return (
+        <Reveal>
+          <div style={{ ...S.section, textAlign: "center" }}>
+            <h2 style={{ fontFamily: "'Noto Serif KR', serif", fontSize: 24, fontWeight: 400, margin: "0 0 16px", color: P.black }}>
+              김민준 <span style={{ fontSize: 16, fontFamily: "'Playfair Display', serif", fontStyle: "italic", margin: "0 10px", color: P.gray }}>and</span> 이서연
+            </h2>
+            <div style={S.divider} />
+            <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 14, color: P.black, marginTop: 16, fontWeight: 400, lineHeight: 1.6 }}>
+              2025년 6월 27일 금요일 낮 12시<br />
+              <span style={{ fontSize: 13, color: P.darkGray, marginTop: 4, display: "inline-block" }}>그랜드 하얏트 서울 그랜드볼룸</span>
+            </p>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Parents() {
+      return (
+        <Reveal>
+          <div style={{ ...S.tight, textAlign: "center", paddingTop: 0, paddingBottom: 30 }}>
+            <div style={{ fontSize: 13, lineHeight: 2.2, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>
+              <p style={{ margin: 0 }}><span style={{ color: P.gray, marginRight: 8 }}>신랑측</span> 김OO · 박OO <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 아들 </span><b>민준</b></p>
+              <p style={{ margin: 0 }}><span style={{ color: P.gray, marginRight: 8 }}>신부측</span> 이OO · 최OO <span style={{ color: P.gray, fontSize: 12, margin: "0 4px" }}> 의 딸 </span><b>서연</b></p>
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Contact() {
+      const [open, setOpen] = useState(null);
+      const contacts = {
+        groom: [{ label: "신랑", name: "김민준", tel: "010-1234-5678" }, { label: "신랑 아버지", name: "김OO", tel: "010-1111-2222" }, { label: "신랑 어머니", name: "박OO", tel: "010-3333-4444" }],
+        bride: [{ label: "신부", name: "이서연", tel: "010-5678-1234" }, { label: "신부 아버지", name: "이OO", tel: "010-5555-6666" }, { label: "신부 어머니", name: "최OO", tel: "010-7777-8888" }],
+      };
+      return (
+        <Reveal>
+          <div style={{ ...S.tight, textAlign: "center" }}>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              {["groom", "bride"].map(side => (
+                <button key={side} onClick={() => setOpen(open === side ? null : side)} style={{ ...S.btn, background: open === side ? P.black : P.white, color: open === side ? P.white : P.black, minWidth: 120 }}>
+                  {side === "groom" ? "신랑측" : "신부측"} 연락하기
+                </button>
+              ))}
+            </div>
+            <div style={{ maxHeight: open ? 300 : 0, overflow: "hidden", transition: "max-height .4s ease, opacity .3s ease", opacity: open ? 1 : 0 }}>
+              {open && (
+                <div style={{ marginTop: 16, background: P.white, borderRadius: 8, padding: "14px 16px", border: `1px solid ${P.border}` }}>
+                  {contacts[open]?.map((c, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "10px 0", fontSize: 13, borderBottom: i < contacts[open].length - 1 ? `1px solid ${P.lightGray}` : "none" }}>
+                      <span><span style={{ color: P.gray, marginRight: 8 }}>{c.label}</span>{c.name}</span>
+                      <a href={`tel:${c.tel}`} style={{ color: P.black, textDecoration: "none", fontSize: 11, padding: "4px 14px", border: `1px solid ${P.black}`, borderRadius: 20 }}>전화</a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Calendar() {
+      const wd = WEDDING_DATE;
+      const diff = Math.max(0, Math.ceil((wd - new Date()) / 864e5));
+      const y = wd.getFullYear(), m = wd.getMonth();
+      const first = new Date(y, m, 1).getDay();
+      const total = new Date(y, m + 1, 0).getDate();
+      const days = [...Array(first).fill(null), ...Array.from({ length: total }, (_, i) => i + 1)];
+      const dn = ["S", "M", "T", "W", "T", "F", "S"];
+      return (
+        <Reveal>
+          <div style={{ ...S.tight, background: P.white, marginTop: 20 }}>
+            <p style={S.title}>Calendar</p>
+            <div style={{ maxWidth: 300, margin: "0 auto" }}>
+              <p style={{ textAlign: "center", fontSize: 14, fontWeight: 600, margin: "0 0 20px", color: P.black, fontFamily: "'Playfair Display', serif" }}>{y}. {String(m + 1).padStart(2, '0')}</p>
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(7,1fr)", textAlign: "center", gap: "8px 0" }}>
+                {dn.map((d, i) => <div key={i} style={{ fontSize: 10, color: P.gray, fontFamily: "'Playfair Display', serif" }}>{d}</div>)}
+                {days.map((d, i) => {
+                  const isW = d === wd.getDate();
+                  return (
+                    <div key={i} style={{ padding: "8px 0", position: "relative", color: !d ? "transparent" : (isW ? P.white : P.black), fontSize: 12, fontFamily: "'Pretendard', sans-serif", fontWeight: isW ? 600 : 400 }}>
+                      {isW && <div style={{ position: "absolute", top: "50%", left: "50%", transform: "translate(-50%,-50%)", width: 26, height: 26, borderRadius: "50%", background: P.black, zIndex: 0 }} />}
+                      <span style={{ position: "relative", zIndex: 1 }}>{d}</span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+            <div style={{ textAlign: "center", marginTop: 30 }}>
+              <p style={{ fontSize: 13, color: P.darkGray, fontFamily: "'Pretendard', sans-serif" }}>결혼식까지 <span style={{ fontFamily: "'Playfair Display', serif", fontSize: 24, fontWeight: 600, color: P.black, margin: "0 6px" }}>{diff}</span> 일</p>
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Gallery() {
+      const strips = [];
+      for (let i = 0; i < GALLERY_IMAGES.length; i += 4) strips.push(GALLERY_IMAGES.slice(i, i + 4));
+      return (
+        <Reveal delay={100}>
+          <div style={{ ...S.tight, paddingLeft: 0, paddingRight: 0, overflow: "hidden" }}>
+            <p style={S.title}>Life Four Cuts</p>
+            <div style={{ display: "flex", overflowX: "auto", gap: 16, padding: "0 24px 30px", scrollSnapType: "x mandatory", WebkitOverflowScrolling: "touch" }}>
+              {strips.map((strip, si) => (
+                <div key={si} style={{ flex: "0 0 220px", scrollSnapAlign: "center", background: P.white, padding: "12px 12px 40px 12px", boxShadow: "0 4px 16px rgba(0,0,0,0.06)", display: "flex", flexDirection: "column", gap: 8, position: "relative" }}>
+                  {strip.map((src, pi) => <div key={pi} style={{ width: "100%", aspectRatio: "3/2", backgroundImage: `url(${src})`, backgroundSize: "cover", backgroundPosition: "center", filter: "contrast(1.1) grayscale(10%)" }} />)}
+                  <div style={{ position: "absolute", bottom: 12, left: 12, right: 12, display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
+                    <div style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 8, color: P.black, letterSpacing: ".1em", lineHeight: 1.2 }}>M & S WEDDING<br /><span style={{ color: P.gray }}>VOL. {si + 1}</span></div>
+                    <div style={{ display: "flex", gap: 2, height: 12, alignItems: "flex-end", opacity: 0.5 }}>
+                      <div style={{ width: 2, height: "100%", background: P.black }}/><div style={{ width: 1, height: "80%", background: P.black }}/><div style={{ width: 3, height: "100%", background: P.black }}/><div style={{ width: 1, height: "60%", background: P.black }}/><div style={{ width: 2, height: "100%", background: P.black }}/>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            <p style={{ textAlign: "center", fontSize: 11, fontFamily: "'Pretendard', sans-serif", color: P.gray, marginTop: "-10px" }}>← 옆으로 넘겨보세요 →</p>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function OurStory() {
+      const qna = [
+        { q: "첫 만남은 어땠나요?", a: "친구 모임에서 처음 만났는데, 웃는 모습이 너무 예뻐서 눈을 뗄 수 없었어요. (민준)" },
+        { q: "결혼을 결심한 계기는?", a: "함께 있을 때 가장 나다운 모습이 된다는 걸 알았을 때, 이 사람이라고 확신했어요. (서연)" }
+      ];
+      return (
+        <Reveal>
+          <div style={{ ...S.tight, background: P.white }}>
+            <p style={S.title}>Interview</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 24, padding: "0 10px" }}>
+              {qna.map((item, i) => (
+                <div key={i} style={{ borderLeft: `2px solid ${P.black}`, paddingLeft: 16 }}>
+                  <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, fontWeight: 600, color: P.black, margin: "0 0 8px" }}>Q. {item.q}</p>
+                  <p style={{ fontFamily: "'Pretendard', sans-serif", fontSize: 13, color: P.darkGray, lineHeight: 1.6, margin: 0, fontWeight: 300 }}>A. {item.a}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Location() {
+      return (
+        <Reveal>
+          <div style={{ ...S.tight }}>
+            <p style={S.title}>Location</p>
+            <div style={{ textAlign: "center", fontFamily: "'Pretendard', sans-serif" }}>
+              <p style={{ fontSize: 15, fontWeight: 600, margin: "0 0 4px", color: P.black }}>그랜드 하얏트 서울</p>
+              <p style={{ fontSize: 12, color: P.darkGray, margin: "0 0 2px" }}>그랜드볼룸 1층</p>
+              <p style={{ fontSize: 12, color: P.gray, margin: "0 0 20px" }}>서울특별시 용산구 소월로 322</p>
+              <div style={{ width: "100%", height: 180, background: P.lightGray, marginBottom: 16, border: `1px solid ${P.border}`, display: "flex", alignItems: "center", justifyContent: "center", color: P.gray, fontSize: 12 }}>
+                지도 영역 (API 연동 필요)
+              </div>
+              <div style={{ display: "flex", gap: 8, justifyContent: "center" }}>
+                {["네이버 지도", "카카오맵", "길 찾기"].map(t => <button key={t} style={{ ...S.btn, fontSize: 11, padding: "8px 18px", borderRadius: 4 }}>{t}</button>)}
+              </div>
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Account() {
+      const [open, setOpen] = useState(null);
+      const accounts = { groom: [{ bank: "국민은행", num: "123-456-789012", name: "김민준" }], bride: [{ bank: "카카오뱅크", num: "3333-01-2345678", name: "이서연" }] };
+      const copy = t => { navigator.clipboard.writeText(t).then(() => alert("복사되었습니다.")); };
+      return (
+        <Reveal>
+          <div style={{ ...S.tight, background: P.white }}>
+            <p style={S.title}>Account</p>
+            <p style={{ textAlign: "center", fontSize: 12, color: P.gray, margin: "0 0 20px", fontFamily: "'Pretendard', sans-serif" }}>축하의 마음을 전해 주세요</p>
+            <div style={{ display: "flex", gap: 12, justifyContent: "center" }}>
+              {["groom", "bride"].map(side => (
+                <button key={side} onClick={() => setOpen(open === side ? null : side)} style={{ ...S.btn, background: open === side ? P.black : P.bg, color: open === side ? P.white : P.black, border: "none", minWidth: 120 }}>
+                  {side === "groom" ? "신랑측" : "신부측"} 계좌
+                </button>
+              ))}
+            </div>
+            <div style={{ maxHeight: open ? 200 : 0, overflow: "hidden", transition: "all .3s ease", opacity: open ? 1 : 0 }}>
+              {open && (
+                <div style={{ marginTop: 16, background: P.bg, borderRadius: 8, padding: "12px 16px" }}>
+                  {accounts[open]?.map((a, i) => (
+                    <div key={i} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", fontSize: 13, fontFamily: "'Pretendard', sans-serif" }}>
+                      <div><span style={{ color: P.darkGray, marginRight: 8 }}>{a.bank}</span><span style={{ color: P.black }}>{a.num}</span><div style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>{a.name}</div></div>
+                      <button onClick={() => copy(a.num)} style={{ ...S.btn, fontSize: 11, padding: "6px 14px", borderRadius: 4 }}>복사</button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function Guestbook() {
+      const [entries, setEntries] = useState([]);
+      const [name, setName] = useState("");
+      const [msg, setMsg] = useState("");
+      useEffect(() => {
+        try { const saved = localStorage.getItem("guestbook"); if (saved) setEntries(JSON.parse(saved)); } catch (e) {}
+      }, []);
+      const submit = () => {
+        if (!name.trim() || !msg.trim()) return;
+        const newEntries = [{ id: Date.now(), name, msg, date: new Date().toLocaleDateString() }, ...entries];
+        setEntries(newEntries);
+        try { localStorage.setItem("guestbook", JSON.stringify(newEntries)); } catch (e) {}
+        setName(""); setMsg("");
+      };
+      const inputStyle = { border: "none", borderBottom: `1px solid ${P.gray}`, borderRadius: 0, padding: "8px 4px", fontSize: 13, fontFamily: "'Pretendard', sans-serif", outline: "none", background: "transparent", width: "100%", boxSizing: "border-box", color: P.black };
+      return (
+        <Reveal>
+          <div style={{ ...S.tight }}>
+            <p style={S.title}>Guest Book</p>
+            <div style={{ background: P.white, padding: 24, boxShadow: "0 4px 20px rgba(0,0,0,0.03)", marginBottom: 20 }}>
+              <div style={{ display: "flex", gap: 12, marginBottom: 16 }}><input value={name} onChange={e => setName(e.target.value)} placeholder="이름" style={inputStyle} /></div>
+              <textarea value={msg} onChange={e => setMsg(e.target.value)} placeholder="축하 메시지를 남겨주세요." rows={2} style={{ ...inputStyle, resize: "none", borderBottom: "none", background: P.bg, padding: "12px", borderRadius: 4 }} />
+              <button onClick={submit} style={{ ...S.btn, width: "100%", marginTop: 16, background: P.black, color: P.white }}>등록하기</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {entries.map(e => (
+                <div key={e.id} style={{ background: P.white, padding: "16px", borderRadius: 8, border: `1px solid ${P.border}` }}>
+                  <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 8, fontFamily: "'Pretendard', sans-serif" }}><span style={{ fontSize: 13, fontWeight: 600, color: P.black }}>{e.name}</span><span style={{ fontSize: 11, color: P.gray }}>{e.date}</span></div>
+                  <p style={{ fontSize: 13, margin: 0, color: P.darkGray, lineHeight: 1.5, fontFamily: "'Pretendard', sans-serif" }}>{e.msg}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function RSVP() {
+      const [rn, setRn] = useState("");
+      const [att, setAtt] = useState("");
+      const [sent, setSent] = useState(false);
+      const submit = () => { if (!rn.trim() || !att) return alert("항목을 입력해주세요."); setSent(true); };
+      if (sent) return (
+        <div style={{ ...S.tight, background: P.white, textAlign: "center" }}><p style={S.title}>RSVP</p><p style={{ fontSize: 14, color: P.black, fontFamily: "'Pretendard', sans-serif" }}>참석 여부가 전달되었습니다.<br />감사합니다.</p></div>
+      );
+      return (
+        <Reveal>
+          <div style={{ ...S.tight, background: P.white }}>
+            <p style={S.title}>RSVP</p>
+            <div style={{ maxWidth: 320, margin: "0 auto", fontFamily: "'Pretendard', sans-serif" }}>
+              <input value={rn} onChange={e => setRn(e.target.value)} placeholder="성함" style={{ width: "100%", border: `1px solid ${P.border}`, padding: "12px", fontSize: 13, boxSizing: "border-box", marginBottom: 12, outline: "none" }} />
+              <div style={{ display: "flex", gap: 8, marginBottom: 20 }}>
+                {["참석", "미정", "불참"].map(o => <button key={o} onClick={() => setAtt(o)} style={{ flex: 1, padding: "10px 0", background: att === o ? P.black : P.bg, color: att === o ? P.white : P.darkGray, border: "none", fontSize: 13, cursor: "pointer" }}>{o}</button>)}
+              </div>
+              <button onClick={submit} style={{ ...S.btn, width: "100%", background: P.black, color: P.white, borderRadius: 4 }}>전달하기</button>
+            </div>
+          </div>
+        </Reveal>
+      );
+    }
+
+    function FloatingMusic({ playing, toggle }) {
+      return (
+        <button onClick={toggle} style={{ position: "fixed", top: 16, right: 16, zIndex: 900, width: 36, height: 36, borderRadius: "50%", border: `1px solid ${P.border}`, background: "rgba(255,255,255,0.9)", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", color: P.black, boxShadow: "0 2px 8px rgba(0,0,0,0.06)", animation: playing ? "spin 4s linear infinite" : "none" }}>♫</button>
+      );
+    }
+
+    function WeddingInvitation() {
+      const [entered, setEntered] = useState(false);
+      const [fadeIn, setFadeIn] = useState(false);
+      const [playing, setPlaying] = useState(false);
+      const audioRef = useRef(null);
+
+      const enter = () => {
+        setEntered(true);
+        setPlaying(true);
+        setTimeout(() => setFadeIn(true), 50);
+      };
+
+      useEffect(() => {
+        if (audioRef.current) {
+          playing ? audioRef.current.play().catch(() => {}) : audioRef.current.pause();
+        }
+      }, [playing]);
+
+      return (
+        <React.Fragment>
+          <style>{`
+            @keyframes cursorBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+            @keyframes spin { to { transform: rotate(360deg); } }
+          `}</style>
+
+          <audio ref={audioRef} loop preload="auto"><source src="" type="audio/mpeg" /></audio>
+
+          {!entered && <Splash onEnter={enter} />}
+
+          <div style={{ fontFamily: "'Pretendard', sans-serif", color: P.black, background: P.bg, maxWidth: 480, minHeight: "100vh", margin: "0 auto", position: "relative", overflowX: "hidden", opacity: fadeIn ? 1 : 0, transition: "opacity .8s ease", paddingBottom: 60 }}>
+            <FloatingMusic playing={playing} toggle={() => setPlaying(!playing)} />
+            <Hero />
+            <Info />
+            <Parents />
+            <Contact />
+            <Calendar />
+            <Gallery />
+            <OurStory />
+            <Location />
+            <Account />
+            <Guestbook />
+            <RSVP />
+            <div style={{ textAlign: "center", marginTop: 40, fontFamily: "'Playfair Display', serif", fontSize: 10, letterSpacing: ".2em", color: P.gray }}>
+              M & S <br/><span style={{ fontSize: 8, opacity: 0.6 }}>2025. 06. 27</span>
+            </div>
+          </div>
+        </React.Fragment>
+      );
+    }
+
+    // 리액트를 화면에 그려주는 핵심 명령어
+    const root = ReactDOM.createRoot(document.getElementById('root'));
+    root.render(<WeddingInvitation />);
+  </script>
+</body>
+</html>
