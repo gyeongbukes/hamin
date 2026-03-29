@@ -44,27 +44,11 @@
       return `https://firebasestorage.googleapis.com/v0/b/${bucket}/o/${path}?alt=media`;
     };
 
-    // Firebase Storage에 있는 mp3 파일의 직접 재생 가능한 HTTPS 주소
     const AUDIO_SRC = "https://firebasestorage.googleapis.com/v0/b/sungjang2025-30160.firebasestorage.app/o/%EA%B0%9C%EC%9D%B8%2Fantifreez.mp3?alt=media";
 
     const GALLERY_IMAGES = Array.from({ length: 30 }, (_, i) => getImg(i + 1));
     const WEDDING_DATE = new Date("2026-06-27T13:00:00");
     const P = { bg: "#FAFAFA", white: "#FFFFFF", black: "#262626", gray: "#8E8E8E", lightGray: "#DBDBDB", blue: "#0095F6", pink: "#ED4956", border: "#EFEFEF" };
-
-    /* 모바일 친화적인 B컷 잠금해제 (터치 시 블러 해제) */
-    function BCutReveal() {
-      const [revealed, setRevealed] = useState(false);
-      return (
-        <div onClick={() => setRevealed(true)} style={{ position: "relative", width: "100%", aspectRatio: "3/4", background: P.lightGray, borderRadius: 8, overflow: "hidden", marginTop: 10, cursor: "pointer" }}>
-          <img src={getImg('a')} alt="B컷" style={{ width: "100%", height: "100%", objectFit: "cover", filter: revealed ? "none" : "blur(20px)", transition: "filter 1.5s ease" }} />
-          {!revealed && (
-            <div style={{ position: "absolute", inset: 0, display: "flex", alignItems: "center", justifyContent: "center", background: "rgba(0,0,0,0.2)", color: "#fff", fontWeight: "bold", fontSize: 16, textShadow: "0 2px 4px rgba(0,0,0,0.5)", transition: "opacity 0.5s", opacity: revealed ? 0 : 1 }}>
-              👆 터치해서 진짜 모습 보기 🔓
-            </div>
-          )}
-        </div>
-      );
-    }
 
     /* 모달 베이스 */
     function StoryModal({ title, onClose, children }) {
@@ -97,13 +81,13 @@
       );
     }
 
-    /* TMI 모의고사 컴포넌트 */
+    /* TMI 모의고사 컴포넌트 데이터 */
     const QUIZ_DATA = [
-      { q: "두 사람이 처음 만난 장소는?", options: ["대학교 도서관", "친구의 소개팅", "퇴근길 헬스장"], a: 1 },
-      { q: "신랑이 신부에게 처음 반한 순간은?", options: ["밥을 너무 맛있게 먹어서", "일하는 모습이 멋져서", "환하게 웃을 때"], a: 2 },
-      { q: "두 사람이 가장 좋아하는 데이트는?", options: ["심야 영화 보기", "맛집 투어", "방구석 넷플릭스"], a: 1 },
-      { q: "싸웠을 때 먼저 화해의 손길을 내미는 사람은?", options: ["항상 신랑", "항상 신부", "그때그때 다름"], a: 0 },
-      { q: "신혼여행지는 어디일까요?", options: ["하와이", "발리", "유럽"], a: 2 }
+      { q: "두 사람이 처음 만난 장소는?", options: ["학교 컴퓨터실", "영덕 고래불해수욕장", "전국노래자랑(영덕편)"], a: 0 },
+      { q: "신랑이 신부에게 처음 반한 이유는?", options: ["밥을 너무 맛있게 먹어서", "일하는 모습이 멋져서", "얼굴에 빛이 나서"], a: 2 },
+      { q: "두 사람이 사귄 첫 날 생긴 일은?", options: ["입술끼리 추돌사고", "버스와 추돌사고", "울산FC팀 팬과 추돌사고"], a: 1 },
+      { q: "하민이의 고3 리즈시절 최대 몸무게는?", options: ["108kg", "78kg", "68kg"], a: 1 },
+      { q: "신부가 신랑과 결혼을 다짐한 이유는? (모두 고르세요)", options: ["나의 버팀목이 되어주기 때문에", "내가 버팀목이 되어주고 싶기 때문에", "평생 붙어있고 싶어서"], a: [0, 1, 2], isMulti: true }
     ];
 
     function QuizModal({ onClose }) {
@@ -111,10 +95,38 @@
       const [score, setScore] = useState(0);
       const [status, setStatus] = useState(null); // 'correct', 'wrong', null
       const [confetti, setConfetti] = useState(false);
+      const [selectedMulti, setSelectedMulti] = useState([]); // 다중 선택용 상태
 
       const handleAnswer = (index) => {
-        if (status !== null) return; // 이미 선택한 경우 무시
-        if (index === QUIZ_DATA[step].a) {
+        if (status !== null) return; 
+
+        const q = QUIZ_DATA[step];
+
+        // 다중 선택 문제일 경우
+        if (q.isMulti) {
+          const newSel = selectedMulti.includes(index) 
+            ? selectedMulti.filter(i => i !== index) 
+            : [...selectedMulti, index];
+          
+          setSelectedMulti(newSel);
+
+          // 세 개가 모두 선택되었을 때 정답 처리
+          if (newSel.length === q.a.length && q.a.every(ans => newSel.includes(ans))) {
+            setStatus('correct');
+            setScore(s => s + 1);
+            setConfetti(true);
+            setTimeout(() => {
+              setStatus(null);
+              setConfetti(false);
+              setStep(s => s + 1);
+              setSelectedMulti([]);
+            }, 1500);
+          }
+          return;
+        }
+
+        // 단일 선택 문제일 경우
+        if (index === q.a) {
           setStatus('correct');
           setScore(s => s + 1);
           setConfetti(true);
@@ -155,22 +167,48 @@
                 let color = P.black;
                 let border = P.border;
                 let opacity = 1;
-                if (status !== null) {
-                  if (i === q.a) { bg = "#e6f4ea"; color = "#137333"; border = "#137333"; } // 정답 강조
-                  else if (status === 'wrong' && i !== q.a) { opacity = 0.5; } // 오답 흐리게
+
+                if (q.isMulti) {
+                  // 다중 선택 시 선택된 항목 시각적 표시
+                  if (selectedMulti.includes(i)) {
+                    bg = "#e6f4ea"; border = "#137333"; color = "#137333";
+                  }
+                } else if (status !== null) {
+                  if (i === q.a) { bg = "#e6f4ea"; color = "#137333"; border = "#137333"; } 
+                  else if (status === 'wrong' && i !== q.a) { opacity = 0.5; } 
                 }
+
                 return (
                   <button key={i} onClick={() => handleAnswer(i)} 
                           style={{ padding: "14px", borderRadius: 8, border: `1px solid ${border}`, background: bg, color: color, fontSize: 14, transition: "all 0.2s", opacity: opacity }}>
-                    {i + 1}. {opt}
+                    {i + 1}. {opt} {q.isMulti && selectedMulti.includes(i) ? "✔️" : ""}
                   </button>
                 );
               })}
             </div>
             <div style={{ height: 30, marginTop: 12 }}>
-              {status === 'wrong' && <p style={{ color: "red", fontSize: 14, fontWeight: "bold", margin: 0, animation: "pop 0.3s" }}>땡! 다시 생각해보세요 🤣</p>}
+              {status === 'wrong' && !q.isMulti && <p style={{ color: "red", fontSize: 14, fontWeight: "bold", margin: 0, animation: "pop 0.3s" }}>땡! 다시 생각해보세요 🤣</p>}
               {status === 'correct' && <p style={{ color: "#137333", fontSize: 14, fontWeight: "bold", margin: 0, animation: "pop 0.3s" }}>정답입니다! 🎉</p>}
+              {q.isMulti && selectedMulti.length > 0 && selectedMulti.length < 3 && <p style={{ color: P.blue, fontSize: 13, margin: 0 }}>나머지 정답도 모두 골라주세요!</p>}
             </div>
+          </div>
+        </StoryModal>
+      );
+    }
+
+    /* 우리의 취미 모달 */
+    function HobbyModal({ onClose }) {
+      return (
+        <StoryModal title="🏕️ 우리의 취미" onClose={onClose}>
+          <div style={{ textAlign: "center" }}>
+            {/* 임시 취미 아이콘 혹은 사진을 넣을 수 있습니다 */}
+            <div style={{ fontSize: 60, marginBottom: 16 }}>🏃🏻‍♂️🍽️🛫</div>
+            <p style={{ fontSize: 14, lineHeight: 1.6, color: P.black }}>
+              저희는 맛있는 음식을 함께 먹고,<br/>
+              새로운 곳으로 여행을 떠나는 것을 좋아합니다.<br/>
+              앞으로도 서로의 가장 좋은 여행 메이트가 되어<br/>
+              행복하게 살겠습니다! 😊
+            </p>
           </div>
         </StoryModal>
       );
@@ -188,32 +226,29 @@
       const [mainLiked, setMainLiked] = useState(false);
       const [hearts, setHearts] = useState([]);
 
-      // Firebase 관련 상태
+      // Firebase 하객 투표 데이터 (항목 갱신)
       const [polls, setPolls] = useState({
-        poll1: { title: "결혼식 당일, 누가 먼저 울까요?", opts: ["눈물 많은 신부", "은근 여린 신랑", "양가 부모님"], votes: [0, 0, 0], voted: false },
-        poll2: { title: "두 사람의 2세는 누구를 닮았으면?", opts: ["아빠 닮은 딸", "엄마 닮은 아들", "반반 무많이"], votes: [0, 0, 0], voted: false }
+        poll1: { title: "결혼식 당일, 누가 먼저 울까요?", opts: ["눈물 많은 신부", "눈물 없는 신랑", "양가 부모님"], votes: [0, 0, 0], voted: false },
+        poll2: { title: "두 사람의 2세는 누구를 닮을까요?", opts: ["아빠 닮은 딸", "엄마 닮은 아들"], votes: [0, 0], voted: false }
       });
       const [entries, setEntries] = useState([]);
       const [guestName, setGuestName] = useState("");
       const [guestMsg, setGuestMsg] = useState("");
 
-      // Firebase에서 데이터 불러오기
       useEffect(() => {
-        // 투표 데이터 불러오기
         fetch(`${DB_URL}/polls.json`).then(r => r.json()).then(data => {
           if (data) {
             setPolls(prev => ({
               poll1: { ...prev.poll1, votes: data.poll1 || [0, 0, 0] },
-              poll2: { ...prev.poll2, votes: data.poll2 || [0, 0, 0] }
+              poll2: { ...prev.poll2, votes: data.poll2 || [0, 0] } // 2개 옵션에 맞게 처리
             }));
           }
         }).catch(() => {});
 
-        // 방명록 불러오기
         fetch(`${DB_URL}/guestbook.json`).then(r => r.json()).then(data => {
           if (data) {
             const loadedEntries = Object.keys(data).map(key => ({ id: key, ...data[key] }));
-            loadedEntries.sort((a, b) => b.timestamp - a.timestamp); // 최신순
+            loadedEntries.sort((a, b) => b.timestamp - a.timestamp);
             setEntries(loadedEntries);
           }
         }).catch(() => {});
@@ -226,7 +261,6 @@
         if (audioRef.current) { playing ? audioRef.current.play().catch(()=>{}) : audioRef.current.pause(); }
       }, [playing]);
 
-      // 하객 투표 처리
       const handleVote = (pollKey, optIndex) => {
         if (polls[pollKey].voted) return;
 
@@ -237,7 +271,6 @@
           ...prev, [pollKey]: { ...prev[pollKey], votes: newVotes, voted: true }
         }));
 
-        // Firebase에 PATCH로 투표수 업데이트
         fetch(`${DB_URL}/polls.json`, {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
@@ -245,7 +278,6 @@
         });
       };
 
-      // 사용자 IP 가져오기 및 마스킹
       const fetchMaskedIp = async () => {
         try {
           const res = await fetch('https://api.ipify.org?format=json');
@@ -257,7 +289,6 @@
         }
       };
 
-      // 방명록 등록
       const submitGuestbook = async () => {
         if (!guestName.trim() || !guestMsg.trim()) return;
         
@@ -270,7 +301,6 @@
           timestamp: Date.now()
         };
 
-        // Firebase에 POST
         fetch(`${DB_URL}/guestbook.json`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
@@ -311,10 +341,10 @@
           <button onClick={() => setPlaying(!playing)} style={{ position: "fixed", top: 12, right: 12, zIndex: 900, width: 36, height: 36, borderRadius: "50%", border: `1px solid ${P.lightGray}`, background: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", animation: playing ? "spin 4s linear infinite" : "none" }}>♫</button>
           <audio ref={audioRef} loop preload="auto" src={AUDIO_SRC}></audio>
 
-          {/* 인스타 프로필 헤더 */}
+          {/* 프로필 이미지 'b' 로 변경 */}
           <div style={{ display: "flex", alignItems: "center", padding: "20px 16px", background: P.white, borderBottom: `1px solid ${P.border}` }}>
             <div style={{ width: 76, height: 76, borderRadius: "50%", padding: 3, background: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)` }}>
-              <img src={getImg(16)} style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} />
+              <img src={getImg('b')} style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} />
             </div>
             <div style={{ flex: 1, marginLeft: 20 }}>
               <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>석민규 & 김하민</div>
@@ -331,9 +361,9 @@
             축복해 주시면 감사하겠습니다.
           </div>
 
-          {/* 스토리 하이라이트 */}
+          {/* 스토리 하이라이트 아이콘 변경 (우리의 취미 추가) */}
           <div style={{ display: "flex", gap: 16, padding: "16px", overflowX: "auto", background: P.white, borderBottom: `1px solid ${P.border}` }}>
-            {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'bcut', icon: '🤫', label: 'B컷 해제' }, { id: 'youtube', icon: '▶️', label: '식전 영상' } ].map(item => (
+            {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'hobby', icon: '🏕️', label: '우리의 취미' }, { id: 'youtube', icon: '▶️', label: '식전 영상' } ].map(item => (
               <div key={item.id} onClick={() => setModal(item.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                 <div style={{ width: 60, height: 60, borderRadius: "50%", border: `1px solid ${P.lightGray}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, background: P.bg }}>{item.icon}</div>
                 <div style={{ fontSize: 11 }}>{item.label}</div>
@@ -344,7 +374,7 @@
           {/* 메인 피드 */}
           <div style={{ background: P.white, marginTop: 10 }}>
             <div style={{ padding: "12px 16px", display: "flex", alignItems: "center", gap: 10 }}>
-              <div style={{ width: 30, height: 30, borderRadius: "50%", background: `url(${getImg(16)}) center/cover` }}/>
+              <div style={{ width: 30, height: 30, borderRadius: "50%", background: `url(${getImg('b')}) center/cover` }}/>
               <span style={{ fontSize: 13, fontWeight: 600 }}>wedding_day</span>
             </div>
             
@@ -374,80 +404,31 @@
           {/* 아코디언 메뉴들 */}
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
             
-            {/* 혼주 (가족 관계) */}
+            {/* 혼주 (사진 카드형 레이아웃 변경) */}
             <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
               <div onClick={() => toggleExpand('parents')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
                 👨‍👩‍👧‍👦 혼주 안내 <span>{expanded['parents'] ? '▲' : '▼'}</span>
               </div>
               {expanded['parents'] && (
-                <div style={{ padding: "24px 16px", borderTop: `1px solid ${P.bg}`, textAlign: "center", background: P.white }}>
-                  <div style={{ marginBottom: 24 }}>
-                    <span style={{ fontSize: 12, color: P.pink, fontWeight: 600, letterSpacing: 2, display: "block", marginBottom: 8 }}>GROOM</span>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, fontSize: 16 }}>
-                      <span style={{ fontWeight: 500, color: P.black }}>석윤식 · 한은향</span>
-                      <span style={{ fontSize: 13, color: P.gray }}>의 아들</span>
-                      <span style={{ fontWeight: 600, fontSize: 18, color: P.black }}>석민규</span>
+                <div style={{ padding: "20px", background: "#EAEAEA" }}> 
+                  {/* 신랑 카드 */}
+                  <div style={{ background: P.white, borderRadius: 12, padding: "20px", marginBottom: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.05)", textAlign: "center" }}>
+                    <img src={getImg('c')} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, marginBottom: 16 }} />
+                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 20, color: "#333" }}>신랑 석민규</div>
+                    <div style={{ fontSize: 13, color: P.black, lineHeight: 1.6 }}>
+                      석윤식 · 한은향의 아들<br/>
+                      1991년 4월 서울 출생<br/>
+                      호기심 많은 손재주 왕 📸
                     </div>
                   </div>
-                  <div style={{ width: 40, height: 1, background: P.lightGray, margin: "0 auto 24px" }} />
-                  <div>
-                    <span style={{ fontSize: 12, color: P.pink, fontWeight: 600, letterSpacing: 2, display: "block", marginBottom: 8 }}>BRIDE</span>
-                    <div style={{ display: "flex", justifyContent: "center", alignItems: "center", gap: 12, fontSize: 16 }}>
-                      <span style={{ fontWeight: 500, color: P.black }}>김진수 · 최현욱</span>
-                      <span style={{ fontSize: 13, color: P.gray }}>의 딸</span>
-                      <span style={{ fontWeight: 600, fontSize: 18, color: P.black }}>김하민</span>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
-
-            {/* 우리의 이야기 */}
-            <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
-              <div onClick={() => toggleExpand('story')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer" }}>
-                💬 우리의 이야기 <span>{expanded['story'] ? '▲' : '▼'}</span>
-              </div>
-              {expanded['story'] && (
-                <div style={{ padding: "16px", borderTop: `1px solid ${P.bg}`, background: "#b2c7d9" }}> 
-                  <div style={{ textAlign: "center", fontSize: 11, color: "#fff", background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "4px 12px", margin: "0 auto 16px", width: "fit-content" }}>2024년 벚꽃 피던 날</div>
-                  
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "14px", background: `url(${getImg(16)}) center/cover` }} />
-                    <div>
-                      <div style={{ fontSize: 12, color: "#4a4a4a", marginBottom: 4 }}>하민이💖</div>
-                      <div style={{ background: "#fff", padding: "8px 12px", borderRadius: "0 12px 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
-                        오빠, 오늘 영화 재밌었어요! 😊 조심해서 들어가요~
-                      </div>
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-                    <div style={{ background: "#fee500", padding: "8px 12px", borderRadius: "12px 0 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
-                      응 하민아! 나도 진짜 즐거웠어. 사실 오늘 하고 싶은 말이 있었는데...
-                    </div>
-                  </div>
-
-                  <div style={{ display: "flex", gap: 8, marginBottom: 12 }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "14px", background: `url(${getImg(16)}) center/cover` }} />
-                    <div>
-                      <div style={{ fontSize: 12, color: "#4a4a4a", marginBottom: 4 }}>하민이💖</div>
-                      <div style={{ background: "#fff", padding: "8px 12px", borderRadius: "0 12px 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
-                        네? 무슨 말이에요? 👀
-                      </div>
-                    </div>
-                  </div>
-
-                   <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 12 }}>
-                    <div style={{ background: "#fee500", padding: "8px 12px", borderRadius: "12px 0 12px 12px", fontSize: 13, color: "#000", maxWidth: 220, lineHeight: 1.4, boxShadow: "0 1px 2px rgba(0,0,0,0.1)" }}>
-                      우리 내일도, 모레도, 앞으로도 계속 같이 영화 볼래? 나랑 만나자!
-                    </div>
-                  </div>
-
-                  <div style={{ textAlign: "center", fontSize: 11, color: "#fff", background: "rgba(0,0,0,0.2)", borderRadius: 12, padding: "4px 12px", margin: "24px auto 16px", width: "fit-content" }}>2026년 6월 27일</div>
-
-                   <div style={{ display: "flex", justifyContent: "center", marginBottom: 4 }}>
-                    <div style={{ background: "rgba(0,0,0,0.15)", padding: "6px 14px", borderRadius: "16px", fontSize: 12, color: "#fff" }}>
-                      석민규 님과 김하민 님이 평생을 함께하기로 했습니다. 🎉
+                  {/* 신부 카드 */}
+                  <div style={{ background: P.white, borderRadius: 12, padding: "20px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)", textAlign: "center" }}>
+                    <img src={getImg('d')} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, marginBottom: 16 }} />
+                    <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 20, color: "#333" }}>신부 김하민</div>
+                    <div style={{ fontSize: 13, color: P.black, lineHeight: 1.6 }}>
+                      김진수 · 최현욱의 딸<br/>
+                      1995년 7월 제주 출생<br/>
+                      감성 과다 제주소녀 🍊
                     </div>
                   </div>
                 </div>
@@ -518,7 +499,7 @@
             </div>
           </div>
 
-          {/* 방명록 (Firebase 연동 + IP 표시) */}
+          {/* 방명록 */}
           <div style={{ padding: "16px", background: P.white, marginTop: 10, borderTop: `1px solid ${P.border}` }}>
             <div style={{ fontSize: 14, fontWeight: 600, marginBottom: 16 }}>댓글 {entries.length}개</div>
             
@@ -539,7 +520,6 @@
               {entries.length === 0 && <div style={{ fontSize: 13, color: P.gray, textAlign: "center", padding: "20px 0" }}>첫 번째 축하 댓글을 남겨주세요!</div>}
             </div>
 
-            {/* 댓글 입력창 */}
             <div style={{ display: "flex", gap: 10, alignItems: "center", background: P.bg, padding: "10px 16px", borderRadius: 30 }}>
               <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="이름" style={{ width: "60px", border: "none", background: "transparent", fontSize: 13, outline: "none", borderRight: `1px solid ${P.lightGray}` }} />
               <input value={guestMsg} onChange={e => setGuestMsg(e.target.value)} placeholder="축하 메시지 달기..." style={{ flex: 1, border: "none", background: "transparent", fontSize: 13, outline: "none" }} />
@@ -579,16 +559,12 @@
 
           {modal === 'quiz' && <QuizModal onClose={() => setModal(null)} />}
 
-          {modal === 'bcut' && (
-            <StoryModal title="🤫 우리의 진짜 모습" onClose={() => setModal(null)}>
-              <BCutReveal />
-            </StoryModal>
-          )}
+          {modal === 'hobby' && <HobbyModal onClose={() => setModal(null)} />}
 
           {modal === 'youtube' && (
             <StoryModal title="▶️ 식전 영상 미리보기" onClose={() => setModal(null)}>
               <div style={{ width: "100%", aspectRatio: "16/9", background: P.black, borderRadius: 8, overflow: "hidden" }}>
-                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/dQw4w9WgXcQ" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
+                <iframe width="100%" height="100%" src="https://www.youtube.com/embed/K5YBoEvDBzU" title="YouTube video player" frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen></iframe>
               </div>
             </StoryModal>
           )}
