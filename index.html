@@ -30,13 +30,6 @@
       position: absolute; animation: floatUp 1.2s ease-out forwards; pointer-events: none; font-size: 28px; z-index: 50;
     }
 
-    /* 갤러리 그리드용 CSS */
-    .gallery-thumb {
-      width: 100%; aspect-ratio: 1; background-size: cover; background-position: center; cursor: pointer; transition: opacity 0.2s;
-    }
-    .gallery-thumb:active { opacity: 0.7; }
-
-    /* 메인 사진 블러 CSS */
     .main-photo-container {
       position: relative; width: 100%; overflow: hidden; background-color: #000;
     }
@@ -47,13 +40,12 @@
       position: relative; width: 100%; display: block; object-fit: contain;
     }
 
-    /* 스크롤 다운 애니메이션 */
     @keyframes bounceScroll {
       0%, 100% { transform: translateY(0); }
       50% { transform: translateY(10px); }
     }
     .scroll-indicator {
-      position: absolute; bottom: 40px; left: 50%; transform: translateX(-50%);
+      position: absolute; bottom: 30px; left: 50%; transform: translateX(-50%);
       display: flex; flex-direction: column; align-items: center; gap: 8px;
       animation: bounceScroll 2s infinite ease-in-out;
     }
@@ -88,7 +80,6 @@
     const WEDDING_DATE = new Date("2026-06-27T13:00:00");
     const P = { bg: "#FAFAFA", white: "#FFFFFF", black: "#262626", gray: "#8E8E8E", lightGray: "#DBDBDB", blue: "#0095F6", pink: "#ED4956", border: "#EFEFEF" };
 
-    /* 🔥 스크롤 시 스르륵 나타나는 감성 애니메이션 컴포넌트 */
     function FadeIn({ children, delay = 0, duration = 1 }) {
       const domRef = useRef();
       const [isVisible, setVisible] = useState(false);
@@ -282,14 +273,15 @@
 
     function HobbyModal({ onClose }) {
       return (
-        <StoryModal title="🏕️ 우리의 취미" onClose={onClose}>
+        <StoryModal title="🛋️ 우리의 취미" onClose={onClose}>
           <div style={{ textAlign: "center" }}>
             <img src={getImg('a.jpg')} style={{ width: "100%", borderRadius: 8, marginBottom: 16, objectFit: "cover" }} alt="우리의 취미" />
+            <div style={{ fontSize: 40, marginBottom: 16 }}>🍽️🛋️💬</div>
             <p style={{ fontSize: 14, lineHeight: 1.6, color: P.black }}>
               저희는 맛있는 음식을 함께 먹고,<br/>
-              새로운 곳으로 여행을 떠나는 것을 좋아합니다.<br/>
-              앞으로도 서로의 가장 좋은 여행 메이트가 되어<br/>
-              행복하게 살겠습니다! 😊
+              누워 서로의 이야기를 듣는 것을 좋아합니다.<br/>
+              앞으로도 서로의 가장 친구이자 배우자가 되어<br/>
+              행복하게 살겠습니다!
             </p>
           </div>
         </StoryModal>
@@ -399,23 +391,24 @@
           <button onClick={() => setPlaying(!playing)} style={{ position: "fixed", top: 12, right: 12, zIndex: 900, width: 36, height: 36, borderRadius: "50%", border: `1px solid ${P.lightGray}`, background: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", animation: playing ? "spin 4s linear infinite" : "none", fontSize: 16 }}>♫</button>
           <audio ref={audioRef} loop preload="auto" src={AUDIO_SRC}></audio>
 
-          {/* 🔥 1. 최상단 감성 타이포그래피 커버 (Hero Section) */}
-          <div style={{ height: "100vh", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: P.bg, position: "relative", textAlign: "center" }}>
+          {/* 🔥 1. 여백을 확보하여 스크롤 겹침을 방지한 감성 타이포그래피 커버 */}
+          <div style={{ minHeight: "100vh", padding: "40px 20px 120px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: P.bg, position: "relative", textAlign: "center", boxSizing: "border-box" }}>
             <FadeIn delay={0.2} duration={1.2}>
-              <div style={{ fontSize: 12, color: P.gray, letterSpacing: "3px", marginBottom: 20 }}>WEDDING INVITATION</div>
+              <div style={{ fontSize: 13, color: P.gray, letterSpacing: "3px", marginBottom: 20 }}>WEDDING INVITATION</div>
             </FadeIn>
             <FadeIn delay={0.5} duration={1.2}>
-              <div style={{ fontSize: 42, fontFamily: "'Playfair Display', serif", fontWeight: 700, color: P.black, marginBottom: 24, letterSpacing: "1px" }}>
+              <div style={{ fontSize: 44, fontFamily: "'Playfair Display', serif", fontWeight: 700, color: P.black, marginBottom: 24, letterSpacing: "1px" }}>
                 2026. 06. 27
               </div>
             </FadeIn>
             <FadeIn delay={0.8} duration={1.2}>
-              <div style={{ fontSize: 18, fontWeight: 500, color: P.black, marginBottom: 30, letterSpacing: "2px" }}>
+              <div style={{ fontSize: 20, fontWeight: 500, color: P.black, marginBottom: 30, letterSpacing: "2px" }}>
                 석민규 그리고 김하민
               </div>
             </FadeIn>
             <FadeIn delay={1.1} duration={1.2}>
-              <div style={{ fontSize: 14, color: P.gray, lineHeight: 1.8 }}>
+              {/* 장소 및 시간 강조 */}
+              <div style={{ fontSize: 18, color: P.black, lineHeight: 1.6, fontWeight: 600 }}>
                 더누벨 포항 1층<br/>오후 1시
               </div>
             </FadeIn>
@@ -429,7 +422,6 @@
             </FadeIn>
           </div>
 
-          {/* 🔥 2. 스크롤을 내리면 등장하는 인스타 프로필 및 피드 */}
           <FadeIn delay={0.1}>
             <div style={{ display: "flex", alignItems: "center", padding: "20px 16px", background: P.white, borderBottom: `1px solid ${P.border}`, borderTop: `1px solid ${P.border}` }}>
               <div style={{ width: 76, height: 76, borderRadius: "50%", padding: 3, background: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)` }}>
@@ -448,7 +440,8 @@
 
           <FadeIn delay={0.2}>
             <div style={{ display: "flex", gap: 16, padding: "16px", overflowX: "auto", background: P.white, borderBottom: `1px solid ${P.border}` }}>
-              {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'hobby', icon: '🏕️', label: '우리의 취미' }, { id: 'youtube', icon: '▶️', label: '식전 영상' } ].map(item => (
+              {/* ✅ 하이라이트 아이콘 소파(🛋️)로 변경 */}
+              {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'hobby', icon: '🛋️', label: '우리의 취미' }, { id: 'youtube', icon: '▶️', label: '식전 영상' } ].map(item => (
                 <div key={item.id} onClick={() => setModal(item.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                   <div style={{ width: 60, height: 60, borderRadius: "50%", border: `1px solid ${P.lightGray}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, background: P.bg }}>{item.icon}</div>
                   <div style={{ fontSize: 11, color: P.black }}>{item.label}</div>
@@ -476,7 +469,6 @@
                     {mainLiked ? "❤️" : "♡"}
                   </span> 💬 ↗️
                 </div>
-                {/* D-Day 포인트 */}
                 <div style={{ fontSize: 15, fontWeight: 600, marginBottom: 8, color: P.black, display: "flex", alignItems: "center" }}>
                   좋아요 무지하게 <span style={{ color: P.pink, fontSize: 18, fontWeight: 800, marginLeft: 8 }}>D-{dDayDiff}</span>
                 </div>
@@ -490,15 +482,22 @@
 
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
             
+            {/* ✅ 우리에 대해서 (신랑/신부 칸 나누기 복구) */}
             <FadeIn delay={0.1}>
               <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
                 <div onClick={() => toggleExpand('parents')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer", color: P.black }}>
                   👨‍👩‍👧‍👦 우리에 대해서 <span>{expanded['parents'] ? '▲' : '▼'}</span>
                 </div>
                 {expanded['parents'] && (
-                  <div style={{ padding: "20px 16px", background: "#FFFFFF", display: "flex", flexDirection: "column", gap: 20 }}> 
-                    <img src={getImg('c.jpg')} style={{ width: "100%", borderRadius: 16, display: "block" }} alt="신랑 소개" />
-                    <img src={getImg('d.jpg')} style={{ width: "100%", borderRadius: 16, display: "block" }} alt="신부 소개" />
+                  <div style={{ padding: "20px", background: "#F0F0F0" }}> 
+                    {/* 신랑 칸 */}
+                    <div style={{ background: P.white, borderRadius: 16, padding: "16px", marginBottom: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                      <img src={getImg('c.jpg')} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, display: "block" }} alt="신랑 소개" />
+                    </div>
+                    {/* 신부 칸 */}
+                    <div style={{ background: P.white, borderRadius: 16, padding: "16px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
+                      <img src={getImg('d.jpg')} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, display: "block" }} alt="신부 소개" />
+                    </div>
                   </div>
                 )}
               </div>
