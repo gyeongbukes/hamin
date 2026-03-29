@@ -407,19 +407,21 @@
               </div>
             </FadeIn>
             <FadeIn delay={1.1} duration={1.2}>
-              {/* 장소 및 시간 강조 */}
-              <div style={{ fontSize: 18, color: P.black, lineHeight: 1.6, fontWeight: 600 }}>
+              {/* ✅ 장소 및 시간 폰트 크기 및 두께 대폭 확대 */}
+              <div style={{ fontSize: 22, color: P.black, lineHeight: 1.6, fontWeight: 700 }}>
                 더누벨 포항 1층<br/>오후 1시
               </div>
             </FadeIn>
             
-            {/* 스크롤 유도 애니메이션 */}
-            <FadeIn delay={2.0} duration={1.5}>
-              <div className="scroll-indicator">
-                <div style={{ fontSize: 10, letterSpacing: 2, color: P.gray }}>SCROLL</div>
-                <div style={{ width: 1, height: 40, background: P.gray }}></div>
-              </div>
-            </FadeIn>
+            {/* ✅ 스크롤 유도 위치 중앙 & 하단 고정 완벽 해결 */}
+            <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", display: "flex", justifyContent: "center" }}>
+              <FadeIn delay={2.0} duration={1.5}>
+                <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", animation: "bounceScroll 2s infinite ease-in-out" }}>
+                  <div style={{ fontSize: 10, letterSpacing: 2, color: P.gray }}>SCROLL</div>
+                  <div style={{ width: 1, height: 40, background: P.gray }}></div>
+                </div>
+              </FadeIn>
+            </div>
           </div>
 
           <FadeIn delay={0.1}>
