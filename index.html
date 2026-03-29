@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=2.0">
-  <title>Hamingyu Wedding</title>
+  <title>M & H Wedding</title>
 
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard/dist/web/static/pretendard.css">
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&display=swap" rel="stylesheet">
@@ -304,9 +304,15 @@
         poll1: { title: "결혼식 당일, 누가 먼저 울까요?", opts: ["눈물 많은 신부", "눈물 없는 신랑", "양가 부모님"], votes: [0, 0, 0], voted: false },
         poll2: { title: "두 사람의 2세는 누구를 닮을까요?", opts: ["아빠 닮은 딸", "엄마 닮은 아들"], votes: [0, 0], voted: false }
       });
+      
+      // 방명록 및 참석 여부 상태 관리
       const [entries, setEntries] = useState([]);
       const [guestName, setGuestName] = useState("");
+      const [guestPw, setGuestPw] = useState(""); // 비밀번호 추가
       const [guestMsg, setGuestMsg] = useState("");
+      
+      const [rsvpName, setRsvpName] = useState(""); // 참석자 이름
+      const [rsvpCompanion, setRsvpCompanion] = useState("0"); // 동행인 수
 
       useEffect(() => {
         fetch(`${DB_URL}/polls.json`).then(r => r.json()).then(data => {
@@ -351,14 +357,49 @@
         } catch(e) { return null; }
       };
 
+      // 방명록 등록 (비밀번호 포함)
       const submitGuestbook = async () => {
-        if (!guestName.trim() || !guestMsg.trim()) return;
+        if (!guestName.trim() || !guestMsg.trim() || !guestPw.trim()) {
+          alert("이름, 비밀번호, 메시지를 모두 입력해주세요.");
+          return;
+        }
         const ip = await fetchMaskedIp();
-        const newEntry = { name: guestName, msg: guestMsg, date: new Date().toLocaleDateString(), ip: ip, timestamp: Date.now() };
+        const newEntry = { name: guestName, msg: guestMsg, pw: guestPw, date: new Date().toLocaleDateString(), ip: ip, timestamp: Date.now() };
         fetch(`${DB_URL}/guestbook.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(newEntry) }).then(r => r.json()).then(data => {
           setEntries([{ id: data.name, ...newEntry }, ...entries]);
         });
-        setGuestName(""); setGuestMsg("");
+        setGuestName(""); setGuestPw(""); setGuestMsg("");
+      };
+
+      // 방명록 삭제 (비밀번호 확인)
+      const deleteGuestbook = (id, correctPw) => {
+        const inputPw = prompt("등록할 때 입력한 비밀번호를 입력해주세요.");
+        if (inputPw === null) return;
+        if (inputPw === correctPw) {
+          fetch(`${DB_URL}/guestbook/${id}.json`, { method: 'DELETE' })
+            .then(() => {
+              setEntries(entries.filter(e => e.id !== id));
+              alert("성공적으로 삭제되었습니다.");
+            });
+        } else {
+          alert("비밀번호가 일치하지 않습니다.");
+        }
+      };
+
+      // 참석 여부(RSVP) 데이터 전송
+      const submitRsvp = (status) => {
+        if (!rsvpName.trim()) {
+          alert("참석자 성함을 입력해주세요.");
+          return;
+        }
+        const rsvpData = { name: rsvpName, companion: rsvpCompanion, status: status, timestamp: Date.now() };
+        fetch(`${DB_URL}/rsvp.json`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(rsvpData) })
+          .then(() => {
+            alert(status === '참석' ? "참석 정보가 성공적으로 전달되었습니다. 감사합니다!" : "따뜻한 마음 감사히 받겠습니다.");
+            setRsvpName("");
+            setRsvpCompanion("0");
+            toggleExpand('rsvp'); // 폼 닫기
+          });
       };
 
       const handleLikeAction = (e) => {
@@ -376,7 +417,7 @@
           <div onClick={enter} style={{ position: "fixed", inset: 0, background: "#000", display: "flex", justifyContent: "center", alignItems: "center", cursor: "pointer", zIndex: 10000 }}>
             <img src={getImg('0.jpg')} style={{ width: "100%", height: "100%", objectFit: "cover", opacity: 0.7 }} />
             <div style={{ position: "absolute", color: P.white, textAlign: "center" }}>
-              <div style={{ fontSize: 14, letterSpacing: "2px", marginBottom: 15 }}>Hamingyu WEDDING</div>
+              <div style={{ fontSize: 14, letterSpacing: "2px", marginBottom: 15 }}>M & H WEDDING</div>
               <div style={{ padding: "12px 28px", border: "1px solid white", borderRadius: 30, fontSize: 12, background: "rgba(0,0,0,0.4)" }}>터치해서 초대장 열기</div>
             </div>
           </div>
@@ -391,7 +432,6 @@
           <button onClick={() => setPlaying(!playing)} style={{ position: "fixed", top: 12, right: 12, zIndex: 900, width: 36, height: 36, borderRadius: "50%", border: `1px solid ${P.lightGray}`, background: "rgba(255,255,255,0.9)", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", animation: playing ? "spin 4s linear infinite" : "none", fontSize: 16 }}>♫</button>
           <audio ref={audioRef} loop preload="auto" src={AUDIO_SRC}></audio>
 
-          {/* 🔥 1. 여백을 확보하여 스크롤 겹침을 방지한 감성 타이포그래피 커버 */}
           <div style={{ minHeight: "100vh", padding: "40px 20px 120px", display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center", background: P.bg, position: "relative", textAlign: "center", boxSizing: "border-box" }}>
             <FadeIn delay={0.2} duration={1.2}>
               <div style={{ fontSize: 13, color: P.gray, letterSpacing: "3px", marginBottom: 20 }}>WEDDING INVITATION</div>
@@ -407,13 +447,11 @@
               </div>
             </FadeIn>
             <FadeIn delay={1.1} duration={1.2}>
-              {/* ✅ 장소 및 시간 폰트 크기 및 두께 대폭 확대 */}
               <div style={{ fontSize: 22, color: P.black, lineHeight: 1.6, fontWeight: 700 }}>
                 더누벨 포항 1층<br/>오후 1시
               </div>
             </FadeIn>
             
-            {/* ✅ 스크롤 유도 위치 중앙 & 하단 고정, 아래 막대기 제거 */}
             <div style={{ position: "absolute", bottom: "40px", left: "0", right: "0", display: "flex", justifyContent: "center" }}>
               <FadeIn delay={2.0} duration={1.5}>
                 <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "8px", animation: "bounceScroll 2s infinite ease-in-out" }}>
@@ -441,7 +479,6 @@
 
           <FadeIn delay={0.2}>
             <div style={{ display: "flex", gap: 16, padding: "16px", overflowX: "auto", background: P.white, borderBottom: `1px solid ${P.border}` }}>
-              {/* ✅ 하이라이트 아이콘 소파(🛋️)로 변경 */}
               {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'hobby', icon: '🛋️', label: '우리의 취미' }, { id: 'youtube', icon: '▶️', label: '식전 영상' } ].map(item => (
                 <div key={item.id} onClick={() => setModal(item.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
                   <div style={{ width: 60, height: 60, borderRadius: "50%", border: `1px solid ${P.lightGray}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, background: P.bg }}>{item.icon}</div>
@@ -483,7 +520,6 @@
 
           <div style={{ padding: "16px", display: "flex", flexDirection: "column", gap: 10 }}>
             
-            {/* ✅ 우리에 대해서 (신랑/신부 칸 나누기 복구) */}
             <FadeIn delay={0.1}>
               <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
                 <div onClick={() => toggleExpand('parents')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer", color: P.black }}>
@@ -491,11 +527,9 @@
                 </div>
                 {expanded['parents'] && (
                   <div style={{ padding: "20px", background: "#F0F0F0" }}> 
-                    {/* 신랑 칸 */}
                     <div style={{ background: P.white, borderRadius: 16, padding: "16px", marginBottom: 20, boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                       <img src={getImg('c.jpg')} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, display: "block" }} alt="신랑 소개" />
                     </div>
-                    {/* 신부 칸 */}
                     <div style={{ background: P.white, borderRadius: 16, padding: "16px", boxShadow: "0 2px 8px rgba(0,0,0,0.05)" }}>
                       <img src={getImg('d.jpg')} style={{ width: "100%", aspectRatio: "1", objectFit: "cover", borderRadius: 12, display: "block" }} alt="신부 소개" />
                     </div>
@@ -556,17 +590,29 @@
               </div>
             </FadeIn>
             
+            {/* ✅ 참석 여부(RSVP) 폼으로 기능 업데이트 */}
             <FadeIn delay={0.1}>
               <div style={{ background: P.white, border: `1px solid ${P.border}`, borderRadius: 8, overflow: "hidden" }}>
                 <div onClick={() => toggleExpand('rsvp')} style={{ padding: "16px", fontSize: 14, fontWeight: 600, display: "flex", justifyContent: "space-between", cursor: "pointer", color: P.black }}>
                   📝 참석 여부 전달하기 <span>{expanded['rsvp'] ? '▲' : '▼'}</span>
                 </div>
                 {expanded['rsvp'] && (
-                  <div style={{ padding: "16px", borderTop: `1px solid ${P.bg}`, fontSize: 13, background: P.white }}>
-                    <p style={{ color: P.gray, marginBottom: 12, textAlign: "center" }}>원활한 예식 진행을 위해 참석 여부를 알려주세요.</p>
+                  <div style={{ padding: "20px 16px", borderTop: `1px solid ${P.bg}`, background: P.white }}>
+                    <p style={{ color: P.gray, marginBottom: 20, textAlign: "center", fontSize: 13 }}>원활한 예식 진행을 위해 참석 여부를 알려주세요.</p>
+                    
+                    <div style={{ display: "flex", flexDirection: "column", gap: 12, marginBottom: 20 }}>
+                      <input value={rsvpName} onChange={e => setRsvpName(e.target.value)} placeholder="참석자 성함" style={{ padding: "14px", borderRadius: 8, border: `1px solid ${P.lightGray}`, fontSize: 14, outline: "none" }} />
+                      <select value={rsvpCompanion} onChange={e => setRsvpCompanion(e.target.value)} style={{ padding: "14px", borderRadius: 8, border: `1px solid ${P.lightGray}`, fontSize: 14, outline: "none", backgroundColor: "white" }}>
+                        <option value="0">동행인 없음 (본인 1명)</option>
+                        <option value="1">동행인 1명</option>
+                        <option value="2">동행인 2명</option>
+                        <option value="3">동행인 3명 이상</option>
+                      </select>
+                    </div>
+
                     <div style={{ display: "flex", gap: 10 }}>
-                      <button onClick={() => alert("참석으로 전달되었습니다. 감사합니다!")} style={{ flex: 1, padding: "14px", border: "none", background: P.black, color: P.white, borderRadius: 6, fontWeight: 600, cursor: "pointer", fontSize: 14 }}>참석할게요</button>
-                      <button onClick={() => alert("마음만으로도 감사합니다.")} style={{ flex: 1, padding: "14px", border: `1px solid ${P.lightGray}`, background: P.white, color: P.black, borderRadius: 6, fontWeight: 600, cursor: "pointer", fontSize: 14 }}>마음으로 축하</button>
+                      <button onClick={() => submitRsvp('참석')} style={{ flex: 1, padding: "14px", border: "none", background: P.black, color: P.white, borderRadius: 8, fontWeight: 600, cursor: "pointer", fontSize: 14 }}>참석할게요</button>
+                      <button onClick={() => submitRsvp('불참')} style={{ flex: 1, padding: "14px", border: `1px solid ${P.lightGray}`, background: P.white, color: P.black, borderRadius: 8, fontWeight: 600, cursor: "pointer", fontSize: 14 }}>마음으로 축하</button>
                     </div>
                   </div>
                 )}
@@ -581,25 +627,34 @@
               <div style={{ display: "flex", flexDirection: "column", gap: 16, marginBottom: 20 }}>
                 {entries.map(e => (
                   <div key={e.id} style={{ display: "flex", gap: 10 }}>
-                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, border: `1px solid ${P.border}` }}>👤</div>
+                    <div style={{ width: 30, height: 30, borderRadius: "50%", background: P.bg, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 12, border: `1px solid ${P.border}`, flexShrink: 0 }}>👤</div>
                     <div style={{ flex: 1 }}>
                       <div style={{ display: "flex", alignItems: "baseline", gap: 6 }}>
                         <span style={{ fontSize: 13, fontWeight: 600, color: P.black }}>{e.name}</span>
                         {e.ip && <span style={{ fontSize: 10, color: P.lightGray }}>({e.ip})</span>}
                       </div>
                       <div style={{ fontSize: 13, marginTop: 3, color: P.black, lineHeight: 1.4 }}>{e.msg}</div>
-                      <div style={{ fontSize: 11, color: P.gray, marginTop: 5 }}>{e.date}</div>
+                      {/* ✅ 방명록 삭제 버튼 추가 */}
+                      <div style={{ display: "flex", gap: 12, marginTop: 5 }}>
+                        <span style={{ fontSize: 11, color: P.gray }}>{e.date}</span>
+                        <span onClick={() => deleteGuestbook(e.id, e.pw)} style={{ fontSize: 11, color: P.gray, cursor: "pointer", textDecoration: "underline" }}>삭제</span>
+                      </div>
                     </div>
                   </div>
                 ))}
                 {entries.length === 0 && <div style={{ fontSize: 13, color: P.gray, textAlign: "center", padding: "30px 0" }}>첫 번째 축하 댓글을 남겨주세요!</div>}
               </div>
 
-              <div style={{ display: "flex", gap: 10, alignItems: "center", background: P.bg, padding: "8px 14px", borderRadius: 30, border: `1px solid ${P.border}` }}>
-                <div style={{ width: 24, height: 24, borderRadius: "50%", background: `url(${getImg('b.JPG')}) center/cover` }}/>
-                <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="이름" style={{ width: "50px", border: "none", background: "transparent", fontSize: 13, outline: "none", borderRight: `1px solid ${P.lightGray}`, color: P.black, paddingRight: 5 }} />
-                <input value={guestMsg} onChange={e => setGuestMsg(e.target.value)} placeholder="축하 메시지 달기..." style={{ flex: 1, border: "none", background: "transparent", fontSize: 13, outline: "none", color: P.black, paddingLeft: 5 }} />
-                <button onClick={submitGuestbook} style={{ border: "none", background: "transparent", color: P.blue, fontWeight: 600, fontSize: 13, cursor: "pointer", padding: 0 }}>게시</button>
+              {/* ✅ 방명록 비밀번호 입력칸 추가 및 디자인 정돈 */}
+              <div style={{ background: P.bg, padding: "16px", borderRadius: 12, border: `1px solid ${P.border}` }}>
+                <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
+                  <input value={guestName} onChange={e => setGuestName(e.target.value)} placeholder="이름" style={{ flex: 1, padding: "10px", borderRadius: 6, border: `1px solid ${P.lightGray}`, fontSize: 13, outline: "none", color: P.black }} />
+                  <input type="password" value={guestPw} onChange={e => setGuestPw(e.target.value)} placeholder="비밀번호" style={{ flex: 1, padding: "10px", borderRadius: 6, border: `1px solid ${P.lightGray}`, fontSize: 13, outline: "none", color: P.black }} />
+                </div>
+                <div style={{ display: "flex", gap: 8 }}>
+                  <input value={guestMsg} onChange={e => setGuestMsg(e.target.value)} placeholder="축하 메시지 남기기..." style={{ flex: 1, padding: "10px", borderRadius: 6, border: `1px solid ${P.lightGray}`, fontSize: 13, outline: "none", color: P.black }} />
+                  <button onClick={submitGuestbook} style={{ padding: "0 20px", background: P.blue, color: P.white, border: "none", borderRadius: 6, fontWeight: 600, fontSize: 13, cursor: "pointer" }}>게시</button>
+                </div>
               </div>
             </div>
           </FadeIn>
