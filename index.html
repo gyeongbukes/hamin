@@ -29,7 +29,6 @@
       position: absolute; animation: floatUp 1.2s ease-out forwards; pointer-events: none; font-size: 28px; z-index: 50;
     }
 
-    /* ✅ 오류 수정: aspectRatio -> aspect-ratio 로 올바른 CSS 문법 적용 */
     .gallery-thumb {
       width: 100%; aspect-ratio: 1; background-size: cover; background-position: center; cursor: pointer; transition: opacity 0.2s;
     }
@@ -62,7 +61,6 @@
 
     const AUDIO_SRC = "https://firebasestorage.googleapis.com/v0/b/sungjang2025-30160.firebasestorage.app/o/%EA%B0%9C%EC%9D%B8%2Fantifreez.mp3?alt=media";
 
-    // ✅ 오류 수정: 16.jpg 다시 포함하여 총 30장으로 원상복구
     const PHOTO_LIST = [
       "1.jpg", "2.JPG", "3.JPG", "4.JPG", "5.jpg", 
       "6.jpg", "7.JPG", "8.JPG", "9.JPG", "10.jpg",
@@ -88,6 +86,7 @@
       );
     }
 
+    /* 🔥 완벽하게 수정된 모바일 핀치 줌 라이트박스 */
     function Lightbox({ images, initialIndex, onClose }) {
       const [currentIndex, setCurrentIndex] = useState(initialIndex);
       const imgRef = useRef(null);
@@ -97,28 +96,54 @@
       const [pointX, setPointX] = useState(0);
       const [pointY, setPointY] = useState(0);
       const [start, setStart] = useState({ x: 0, y: 0 });
+      
+      // 모바일 두 손가락 거리 계산용 상태
+      const [pinchStartDist, setPinchStartDist] = useState(null);
+      const [baseScale, setBaseScale] = useState(1);
 
       useEffect(() => {
         setScale(1); setPointX(0); setPointY(0);
       }, [currentIndex]);
 
+      // 두 터치 지점 사이의 거리를 구하는 함수
+      const getDistance = (touches) => {
+        return Math.hypot(touches[0].clientX - touches[1].clientX, touches[0].clientY - touches[1].clientY);
+      };
+
       const handleTouchStart = (e) => {
-        if (e.touches.length === 1 && scale > 1) { 
+        if (e.touches.length === 2) { 
+          // 두 손가락 터치 (확대/축소 준비)
+          setPinchStartDist(getDistance(e.touches));
+          setBaseScale(scale);
+        } else if (e.touches.length === 1 && scale > 1) { 
+          // 확대된 상태에서 한 손가락 터치 (이동 준비)
           setPanning(true);
           setStart({ x: e.touches[0].clientX - pointX, y: e.touches[0].clientY - pointY });
         }
       };
 
       const handleTouchMove = (e) => {
-        if (e.touches.length === 1 && panning && scale > 1) { 
-          e.preventDefault();
+        if (e.touches.length === 2 && pinchStartDist) { 
+          // 두 손가락으로 드래그 (확대/축소 실행)
+          const dist = getDistance(e.touches);
+          // 원래 비율에서 늘어난 거리만큼 스케일업 (최대 4배, 최소 1배 제한)
+          const newScale = Math.min(Math.max(1, baseScale * (dist / pinchStartDist)), 4);
+          setScale(newScale);
+          // 축소해서 원본 크기가 되면 위치 중앙 초기화
+          if (newScale === 1) { setPointX(0); setPointY(0); }
+        } else if (e.touches.length === 1 && panning && scale > 1) { 
+          // 확대된 상태에서 한 손가락으로 드래그 (사진 이동)
           setPointX(e.touches[0].clientX - start.x);
           setPointY(e.touches[0].clientY - start.y);
         }
       };
 
-      const handleTouchEnd = () => { setPanning(false); };
+      const handleTouchEnd = () => { 
+        setPanning(false); 
+        setPinchStartDist(null);
+      };
 
+      // 데스크탑 마우스 휠 확대 기능 (유지)
       const handleWheel = (e) => { 
         if(imgRef.current && e.ctrlKey) {
           e.preventDefault();
@@ -154,8 +179,8 @@
                  style={{ 
                    maxWidth: "100%", maxHeight: "100%", objectFit: "contain",
                    transform: `translate(${pointX}px, ${pointY}px) scale(${scale})`,
-                   transition: panning ? "none" : "transform 0.1s ease-out",
-                   touchAction: scale > 1 ? "none" : "pinch-zoom"
+                   transition: panning || pinchStartDist ? "none" : "transform 0.1s ease-out", // 드래그 중엔 즉시반응, 끝날땐 부드럽게
+                   touchAction: "none" // 네이티브 줌 방지
                  }} />
             
             {currentIndex < images.length - 1 && scale === 1 && <div onClick={() => setCurrentIndex(currentIndex + 1)} style={{ position: "absolute", right: 10, color: "white", fontSize: 40, cursor: "pointer", padding: 20, zIndex: 3005, touchAction: "manipulation" }}>›</div>}
