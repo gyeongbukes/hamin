@@ -15,10 +15,6 @@
   <style>
     body { margin: 0; padding: 0; background-color: #FAFAFA; -webkit-tap-highlight-color: transparent; color: #262626; overflow-x: hidden; font-family: 'Pretendard', sans-serif; }
     ::-webkit-scrollbar { display: none; }
-    .story-scroll::-webkit-scrollbar { display: block; height: 4px; }
-    .story-scroll::-webkit-scrollbar-thumb { background: #DBDBDB; border-radius: 4px; }
-    .story-scroll::-webkit-scrollbar-track { background: transparent; }
-    .story-scroll { scrollbar-width: thin; scrollbar-color: #DBDBDB transparent; }
     
     @keyframes shake { 0%, 100% {transform: translateX(0);} 25% {transform: translateX(-5px);} 50% {transform: translateX(5px);} 75% {transform: translateX(-5px);} }
     .shake { animation: shake 0.4s ease-in-out; }
@@ -324,6 +320,7 @@
       const [expanded, setExpanded] = useState({});
       const [lightboxIndex, setLightboxIndex] = useState(null);
       const audioRef = useRef(null);
+      const storyRef = useRef(null);
       const dDayDiff = Math.max(0, Math.ceil((WEDDING_DATE - new Date()) / 864e5));
 
       const [mainLiked, setMainLiked] = useState(false);
@@ -487,30 +484,37 @@
           </div>
 
           <FadeIn delay={0.1}>
-            <div style={{ display: "flex", alignItems: "center", padding: "20px 16px", background: P.white, borderBottom: `1px solid ${P.border}`, borderTop: `1px solid ${P.border}` }}>
-              <div style={{ width: 76, height: 76, borderRadius: "50%", padding: 3, background: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)` }}>
-                <img src={getImg('b.JPG')} style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} />
-              </div>
-              <div style={{ flex: 1, marginLeft: 20 }}>
-                <div style={{ fontSize: 18, fontWeight: 600, marginBottom: 8 }}>석민규 & 김하민</div>
-                <div style={{ display: "flex", gap: 16, fontSize: 13, textAlign: "center", color: P.black }}>
-                  <div><span style={{ fontWeight: 600 }}>26</span><br/>년</div>
-                  <div><span style={{ fontWeight: 600 }}>06</span><br/>월</div>
-                  <div><span style={{ fontWeight: 600 }}>27</span><br/>일</div>
+            <div style={{ padding: "20px 16px", background: P.white, borderBottom: `1px solid ${P.border}`, borderTop: `1px solid ${P.border}` }}>
+              <div style={{ display: "flex", alignItems: "center" }}>
+                <div style={{ width: 76, height: 76, borderRadius: "50%", padding: 3, background: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)`, flexShrink: 0 }}>
+                  <img src={getImg('b.JPG')} style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} />
                 </div>
+                <div style={{ flex: 1, marginLeft: 20, display: "flex", justifyContent: "space-around", textAlign: "center" }}>
+                  <div><div style={{ fontSize: 18, fontWeight: 700, color: P.black }}>D-{dDayDiff}</div><div style={{ fontSize: 11, color: P.gray, marginTop: 2 }}>남은 날</div></div>
+                  <div><div style={{ fontSize: 18, fontWeight: 700, color: P.black }}>26.06.27</div><div style={{ fontSize: 11, color: P.gray, marginTop: 2 }}>결혼식</div></div>
+                  <div><div style={{ fontSize: 18, fontWeight: 700, color: P.black }}>PM 1</div><div style={{ fontSize: 11, color: P.gray, marginTop: 2 }}>시간</div></div>
+                </div>
+              </div>
+              <div style={{ marginTop: 14 }}>
+                <div style={{ fontSize: 15, fontWeight: 700, color: P.black }}>석민규 ♥ 김하민</div>
+                <div style={{ fontSize: 12, color: P.gray, marginTop: 4, lineHeight: 1.5 }}>포항 더누벨 웨딩컨벤션 · 그레이스홀</div>
               </div>
             </div>
           </FadeIn>
 
           <FadeIn delay={0.2}>
-            <div className="story-scroll" style={{ display: "flex", gap: 16, padding: "16px", overflowX: "auto", background: P.white, borderBottom: `1px solid ${P.border}`, position: "relative" }}>
-              {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'hobby', icon: '📸', label: '우리의 일상' }, { id: 'vid1', icon: '💑', label: '서로를\n소개해요' }, { id: 'vid2', icon: '💒', label: '결혼식을\n홍보해요' }, { id: 'vid3', icon: '👋', label: '하객분들께\n인사해요' } ].map(item => (
-                <div key={item.id} onClick={() => setModal(item.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
-                  <div style={{ width: 60, height: 60, borderRadius: "50%", border: `1px solid ${P.lightGray}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, background: P.bg }}>{item.icon}</div>
-                  <div style={{ fontSize: 11, color: P.black, whiteSpace: "pre-line", textAlign: "center", lineHeight: 1.3 }}>{item.label}</div>
-                </div>
-              ))}
-              <div style={{ width: 16, flexShrink: 0 }} />
+            <div style={{ position: "relative", background: P.white, borderBottom: `1px solid ${P.border}` }}>
+              <div ref={storyRef} style={{ display: "flex", gap: 16, padding: "16px 40px", overflowX: "auto", scrollBehavior: "smooth" }}>
+                {[ { id: 'poll', icon: '📊', label: '하객 투표' }, { id: 'quiz', icon: '💯', label: '모의고사' }, { id: 'hobby', icon: '📸', label: '우리의 일상' }, { id: 'vid1', icon: '💑', label: '서로를\n소개해요' }, { id: 'vid2', icon: '💒', label: '결혼식을\n홍보해요' }, { id: 'vid3', icon: '👋', label: '하객분들께\n인사해요' } ].map(item => (
+                  <div key={item.id} onClick={() => setModal(item.id)} style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: 6, cursor: "pointer", flexShrink: 0 }}>
+                    <div style={{ width: 60, height: 60, borderRadius: "50%", border: `1px solid ${P.lightGray}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 24, background: P.bg }}>{item.icon}</div>
+                    <div style={{ fontSize: 11, color: P.black, whiteSpace: "pre-line", textAlign: "center", lineHeight: 1.3 }}>{item.label}</div>
+                  </div>
+                ))}
+                <div style={{ width: 16, flexShrink: 0 }} />
+              </div>
+              <div onClick={() => storyRef.current && (storyRef.current.scrollLeft -= 160)} style={{ position: "absolute", left: 4, top: "50%", transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "rgba(0,0,0,0.15)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 16, zIndex: 5 }}>‹</div>
+              <div onClick={() => storyRef.current && (storyRef.current.scrollLeft += 160)} style={{ position: "absolute", right: 4, top: "50%", transform: "translateY(-50%)", width: 28, height: 28, borderRadius: "50%", background: "rgba(0,0,0,0.15)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", cursor: "pointer", fontSize: 16, zIndex: 5 }}>›</div>
             </div>
           </FadeIn>
 
