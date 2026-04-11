@@ -491,48 +491,54 @@
             </div>
           </div>
 
-          {/* 인스타 프로필 영역 */}
+          {/* 수정된 인스타 프로필 영역 */}
           <FadeIn delay={0.1}>
             <div style={{ background: P.white, borderTop: `1px solid ${P.border}` }}>
+              
+              {/* 상단: 프로필 사진 + 이름 + 날짜 스탯 */}
               <div style={{ display: "flex", alignItems: "center", padding: "20px 16px 12px" }}>
-                {/* 인스타 스토리 그라데이션 테두리가 있는 원형 프로필 사진 */}
+                
+                {/* 왼쪽: 원형 프로필 사진 */}
                 <div style={{ width: 88, height: 88, borderRadius: "50%", padding: 3, background: `linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%)`, flexShrink: 0 }}>
                   <img src={getImg('b.JPG')} style={{ width: "100%", height: "100%", borderRadius: "50%", border: "2px solid white", objectFit: "cover" }} />
                 </div>
-                {/* 날짜/시간 카운트다운 그리드 */}
-                <div style={{ flex: 1, marginLeft: 16, display: "flex", justifyContent: "space-between", textAlign: "center", paddingRight: 10 }}>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>26</span>
-                    <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>YEAR</span>
+                
+                {/* 오른쪽: 이름 & 날짜 정보 */}
+                <div style={{ flex: 1, marginLeft: 20, display: "flex", flexDirection: "column", justifyContent: "center" }}>
+                  
+                  {/* 이름 (위로 올림) */}
+                  <div style={{ fontSize: 16, fontWeight: 700, color: P.black, marginBottom: 12, textAlign: "left" }}>
+                    석민규 & 김하민
                   </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>06</span>
-                    <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>MONTH</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>27</span>
-                    <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>DAY</span>
-                  </div>
-                  <div style={{ display: "flex", flexDirection: "column" }}>
-                    <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>13</span>
-                    <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>HOUR</span>
+                  
+                  {/* 카운트다운 스탯 (아래로 배치) */}
+                  <div style={{ display: "flex", justifyContent: "space-between", textAlign: "center", paddingRight: 4 }}>
+                    <div style={{ display: "flex", flexDirection: "column", minWidth: "32px" }}>
+                      <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>26</span>
+                      <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>YEAR</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", minWidth: "32px" }}>
+                      <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>06</span>
+                      <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>MONTH</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", minWidth: "32px" }}>
+                      <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>27</span>
+                      <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>DAY</span>
+                    </div>
+                    <div style={{ display: "flex", flexDirection: "column", minWidth: "32px" }}>
+                      <span style={{ fontWeight: 700, fontSize: 24, color: P.black }}>13</span>
+                      <span style={{ fontSize: 11, color: P.gray, marginTop: 4 }}>HOUR</span>
+                    </div>
                   </div>
                 </div>
               </div>
 
-              {/* 이름 및 상세 정보 목록 */}
+              {/* 하단: 상세 정보 (이전의 깔끔한 양식으로 복구) */}
               <div style={{ padding: "0 16px 16px" }}>
-                <div style={{ fontSize: 16, fontWeight: 700, marginBottom: 8, color: P.black }}>석민규 & 김하민</div>
-                <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 22 }}>💍</span>
-                    <span style={{ fontSize: 13, color: P.black }}>2026년 6월 27일 오후 1시</span>
-                  </div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-                    <span style={{ fontSize: 22 }}>📍</span>
-                    <span style={{ fontSize: 13, color: P.black }}>포항 더누벨 웨딩컨벤션 그레이스홀</span>
-                  </div>
-                  <div style={{ fontSize: 13, color: P.black, lineHeight: 1.5, marginTop: 4 }}>저희 두 사람의 새로운 시작을 축복해주세요.</div>
+                <div style={{ fontSize: 13, color: P.black, lineHeight: 1.5 }}>
+                  💍 2026년 6월 27일 오후 1시<br/>
+                  📍 포항 더누벨 웨딩컨벤션 그레이스홀<br/>
+                  저희 두 사람의 새로운 시작을 축복해주세요.
                 </div>
               </div>
             </div>
